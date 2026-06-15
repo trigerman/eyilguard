@@ -9,6 +9,11 @@ import {
   rescanNow,
   getAllowlist,
   removeAllowlist,
+  validateYara,
+  testYara,
+  saveYara,
+  removeCustomYara,
+  listCustomYara,
 } from "./api.js";
 
 /* Set VITE_USE_API=false to force the offline demo (mock) data. */
@@ -492,6 +497,102 @@ function AllowedList({ items, onChanged }) {
   );
 }
 
+const EXAMPLE_RULE = `rule My_Suspicious_Marker
+{
+    meta:
+        description = "Flags files containing my custom marker"
+    strings:
+        $a = "EVIL-MARKER-123" ascii wide nocase
+    condition:
+        $a
+}`;
+
+function CustomRules() {
+  const [src, setSrc] = useState(EXAMPLE_RULE);
+  const [name, setName] = useState("");
+  const [testPath, setTestPath] = useState("");
+  const [status, setStatus] = useState(null);   // {kind:'ok'|'err'|'test', text}
+  const [items, setItems] = useState([]);
+  const [busy, setBusy] = useState(false);
+
+  const loadList = async () => { try { setItems(await listCustomYara()); } catch {} };
+  useEffect(() => { loadList(); }, []);
+
+  const run = async (fn) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
+  const doValidate = () => run(async () => {
+    try { const r = await validateYara(src);
+      setStatus(r.valid ? { kind: "ok", text: `Valid — ${r.rules} rule(s).` }
+                        : { kind: "err", text: r.error }); }
+    catch { setStatus({ kind: "err", text: "Engine not reachable." }); }
+  });
+  const doSave = () => run(async () => {
+    try { const r = await saveYara(name, src);
+      if (r.ok) { setStatus({ kind: "ok", text: `Saved "${r.saved}". Engine now has ${Number(r.total_rules).toLocaleString()} rules.` }); setName(""); await loadList(); }
+      else setStatus({ kind: "err", text: r.error }); }
+    catch { setStatus({ kind: "err", text: "Save failed." }); }
+  });
+  const doTest = () => run(async () => {
+    try { const r = await testYara(src, testPath);
+      if (!r.ok) setStatus({ kind: "err", text: r.error });
+      else setStatus({ kind: "test", text: r.matched ? `MATCH → ${r.rules.join(", ")}` : "No match on that file." }); }
+    catch { setStatus({ kind: "err", text: "Test failed." }); }
+  });
+  const doRemove = (n) => run(async () => { try { await removeCustomYara(n); await loadList(); } catch {} });
+
+  const sc = status?.kind === "ok" ? P.mint : status?.kind === "err" ? P.coral : P.accent;
+  const ghost = { font: "inherit", fontSize: 12.5, fontWeight: 700, color: P.accent,
+    background: "transparent", border: `1.5px solid ${P.accent}`, borderRadius: 10, padding: "7px 14px", cursor: "pointer" };
+  const primary = { font: "inherit", fontSize: 12.5, fontWeight: 700, color: "#fff",
+    background: P.accent, border: "none", borderRadius: 10, padding: "7px 16px", cursor: "pointer" };
+  const inp = { font: "inherit", ...mono, fontSize: 12.5, padding: "7px 10px",
+    border: `1.5px solid ${P.bg}`, borderRadius: 10, background: "#fff", color: P.ink };
+
+  return (
+    <div style={{ padding: "14px 0", borderTop: `1.5px dashed ${P.bg}` }}>
+      <div style={{ fontSize: 15, fontWeight: 700 }}>Your YARA rules</div>
+      <div style={{ fontSize: 12.5, color: P.soft, margin: "4px 0 10px" }}>
+        Write your own detection rule — Haven compiles it straight into the engine. This is
+        your AV; teach it what to look for.</div>
+      <textarea value={src} onChange={(e) => setSrc(e.target.value)} spellCheck={false}
+        style={{ width: "100%", height: 150, boxSizing: "border-box", ...mono, fontSize: 12,
+          padding: "10px 12px", border: `1.5px solid ${P.bg}`, borderRadius: 12,
+          background: "#fff", color: P.ink, resize: "vertical" }} />
+      <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="file name (e.g. my_rules)"
+          style={{ ...inp, flex: 1, minWidth: 130 }} />
+        <button className="pressable" disabled={busy} onClick={doValidate} style={ghost}>Validate</button>
+        <button className="pressable" disabled={busy} onClick={doSave} style={primary}>Save</button>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
+        <input value={testPath} onChange={(e) => setTestPath(e.target.value)} placeholder="test against a file path…"
+          style={{ ...inp, flex: 1 }} />
+        <button className="pressable" disabled={busy} onClick={doTest} style={ghost}>Test</button>
+      </div>
+      {status && (
+        <div style={{ ...mono, fontSize: 12, color: sc, marginTop: 8, wordBreak: "break-word",
+          background: P.bg, borderRadius: 8, padding: "8px 10px" }}>{status.text}</div>
+      )}
+      {!!items.length && (
+        <div style={{ marginTop: 10 }}>
+          {items.map((it) => (
+            <div key={it.name} style={{ display: "flex", alignItems: "center", gap: 10,
+              padding: "7px 0", borderTop: `1px solid ${P.bg}` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ ...mono, fontSize: 12.5, fontWeight: 700 }}>{it.name}</div>
+                <div style={{ fontSize: 11.5, color: P.soft, whiteSpace: "nowrap",
+                  overflow: "hidden", textOverflow: "ellipsis" }}>{(it.rules || []).join(", ") || "—"}</div>
+              </div>
+              <button className="pressable" disabled={busy} onClick={() => doRemove(it.name)}
+                style={{ font: "inherit", fontSize: 12, fontWeight: 700, color: P.coral, background: "transparent",
+                  border: `1.5px solid ${P.coral}`, borderRadius: 10, padding: "4px 11px", cursor: "pointer" }}>Remove</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsModal({ onClose }) {
   const [st, setSt] = useState(null);
   const [allowed, setAllowed] = useState([]);
@@ -525,6 +626,7 @@ function SettingsModal({ onClose }) {
         <KeyRow svc="malpedia" label="Malpedia" st={st} onSaved={load}
           hint="Pulls Malpedia's curated YARA rules (incl. TLP:GREEN/AMBER) to this machine only — never bundled. Free key at malpedia.caad.fkie.fraunhofer.de." />
         <AllowedList items={allowed} onChanged={load} />
+        <CustomRules />
         <div style={{ padding: "14px 0 2px", borderTop: `1.5px dashed ${P.bg}` }}>
           <div style={{ fontSize: 15, fontWeight: 700 }}>VirusTotal</div>
           <div style={{ fontSize: 12.5, color: P.soft, marginTop: 4 }}>

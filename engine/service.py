@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import shutil
 import time
 import uuid
@@ -244,6 +245,56 @@ class AllowlistRemoveRequest(BaseModel):
     key: str
 
 
+class YaraRuleRequest(BaseModel):
+    rule: str
+    name: str = ""
+    path: str = ""          # for /yara/test — a file to test the rule against
+
+
+class YaraRemoveRequest(BaseModel):
+    name: str
+
+
+# ---------- custom YARA rules (write-your-own) ----------
+CUSTOM_YARA_DIR = DATA / "yara" / "custom"
+_YARA_EXTERNALS = ("filename", "filepath", "extension", "filetype", "owner", "md5")
+
+
+def _safe_rule_filename(name: str) -> str:
+    base = os.path.basename((name or "").strip()) or "custom"
+    base = re.sub(r"[^A-Za-z0-9_.-]", "_", base)
+    if not base.lower().endswith((".yar", ".yara")):
+        base += ".yar"
+    return base
+
+
+def _compile_yara_source(source: str):
+    """Compile a YARA source with yara-x + the standard externals. Returns the
+    compiled Rules. Raises on a compile error (caller reports the message)."""
+    import yara_x
+    comp = yara_x.Compiler()
+    for ext in _YARA_EXTERNALS:
+        try:
+            comp.define_global(ext, "")
+        except Exception:
+            pass
+    comp.add_source(source)
+    return comp.build()
+
+
+def _validate_yara(source: str) -> dict:
+    try:
+        import yara_x  # noqa: F401
+    except ImportError:
+        return {"valid": False, "error": "YARA engine (yara-x) not installed.", "rules": 0}
+    try:
+        _compile_yara_source(source)
+    except Exception as e:
+        return {"valid": False, "error": str(e), "rules": 0}
+    n = len(re.findall(r"^\s*(?:private\s+|global\s+)*rule\s+\w+", source, re.M))
+    return {"valid": True, "error": "", "rules": n}
+
+
 # ---------- helpers ----------
 def _verdict_for_path(path: str) -> Verdict:
     findings = engine.scan(path)
@@ -436,6 +487,78 @@ async def remove_allowlist(req: AllowlistRemoveRequest):
     _save_allowlist(allowlist)
     await hub.broadcast({"type": "objects_changed"})
     return {"ok": True, "removed": removed is not None}
+
+
+# ---------- custom YARA rules: write / validate / test / save / remove ----------
+
+@app.post("/yara/validate")
+def yara_validate(req: YaraRuleRequest):
+    """Compile-check a YARA rule without saving it. Returns valid + rule count or
+    the exact compiler error."""
+    return _validate_yara(req.rule)
+
+
+@app.post("/yara/test")
+def yara_test(req: YaraRuleRequest):
+    """Compile a rule and scan one file with it — does it match? (Nothing saved.)"""
+    import yara_x
+    v = _validate_yara(req.rule)
+    if not v["valid"]:
+        return {"ok": False, "error": v["error"]}
+    if not req.path or not os.path.isfile(req.path):
+        return {"ok": False, "error": "File not found — give an absolute path to a file."}
+    try:
+        rules = _compile_yara_source(req.rule)
+        with open(req.path, "rb") as f:
+            data = f.read()
+        result = yara_x.Scanner(rules).scan(data)
+        names = [r.identifier for r in result.matching_rules]
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "matched": bool(names), "rules": names}
+
+
+@app.post("/yara/save")
+async def yara_save(req: YaraRuleRequest):
+    """Validate then save a custom rule to data/yara/custom/ and reload the engine."""
+    v = _validate_yara(req.rule)
+    if not v["valid"]:
+        return {"ok": False, "error": v["error"]}
+    CUSTOM_YARA_DIR.mkdir(parents=True, exist_ok=True)
+    fname = _safe_rule_filename(req.name)
+    (CUSTOM_YARA_DIR / fname).write_text(req.rule, encoding="utf-8")
+    await asyncio.to_thread(engine.yara.reload)     # recompile (can be slow) off-loop
+    _broadcast_health()
+    return {"ok": True, "saved": fname, "total_rules": engine.yara.rule_count}
+
+
+@app.get("/yara/custom")
+def yara_custom_list():
+    """List the user's own saved YARA rules."""
+    out = []
+    if CUSTOM_YARA_DIR.is_dir():
+        for p in sorted(CUSTOM_YARA_DIR.glob("*.yar")) + sorted(CUSTOM_YARA_DIR.glob("*.yara")):
+            try:
+                text = p.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                text = ""
+            names = re.findall(r"^\s*(?:private\s+|global\s+)*rule\s+(\w+)", text, re.M)
+            out.append({"name": p.name, "rules": names})
+    return out
+
+
+@app.post("/yara/custom/remove")
+async def yara_custom_remove(req: YaraRemoveRequest):
+    """Delete a custom rule file and reload."""
+    target = CUSTOM_YARA_DIR / _safe_rule_filename(req.name)
+    existed = target.exists()
+    try:
+        target.unlink(missing_ok=True)
+    except OSError as e:
+        return {"ok": False, "error": str(e)}
+    await asyncio.to_thread(engine.yara.reload)
+    _broadcast_health()
+    return {"ok": True, "removed": existed, "total_rules": engine.yara.rule_count}
 
 
 def _apply_malpedia() -> dict:

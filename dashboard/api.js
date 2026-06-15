@@ -199,6 +199,31 @@ export async function removeAllowlist(key) {
   return r.json();
 }
 
+/* ---------- custom YARA rules (write your own) ---------- */
+async function _yaraPost(endpoint, body) {
+  const r = await fetch(`${httpBase}${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(`${endpoint} ${r.status}`);
+  return r.json();
+}
+/** Compile-check a YARA rule without saving. */
+export const validateYara = (rule) => _yaraPost("/yara/validate", { rule });
+/** Compile a rule and test it against one file path. */
+export const testYara = (rule, path) => _yaraPost("/yara/test", { rule, path });
+/** Validate + save a custom rule, then reload the engine. */
+export const saveYara = (name, rule) => _yaraPost("/yara/save", { name, rule });
+/** Remove a saved custom rule. */
+export const removeCustomYara = (name) => _yaraPost("/yara/custom/remove", { name });
+/** List the user's saved custom rules. */
+export async function listCustomYara() {
+  const r = await fetch(`${httpBase}/yara/custom`);
+  if (!r.ok) throw new Error(`/yara/custom ${r.status}`);
+  return r.json();
+}
+
 /** Scan the watched folders on demand (catches files already on disk). */
 export async function rescanNow() {
   const r = await fetch(`${httpBase}/rescan`, { method: "POST" });
