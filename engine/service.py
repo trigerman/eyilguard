@@ -601,6 +601,62 @@ async def stream(ws: WebSocket):
         hub.leave(ws)
 
 
+# ---------- uninstall: remove Eyil Guard's footprint, then stop ----------
+
+class UninstallRequest(BaseModel):
+    confirm: bool = False
+
+
+def _user_locations():
+    """Best-effort Startup folder + Desktop folder(s), incl. a OneDrive desktop."""
+    home = Path(os.path.expanduser("~"))
+    appdata = os.environ.get("APPDATA") or str(home / "AppData" / "Roaming")
+    startup = Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
+    desktops = [home / "Desktop"]
+    one = os.environ.get("OneDrive")
+    if one:
+        desktops.append(Path(one) / "Desktop")
+    return startup, desktops
+
+
+def _uninstall_footprint() -> list[str]:
+    """Delete the autostart entry, desktop shortcut and log folder. Leaves the
+    project source and your data in place (and ClamAV untouched)."""
+    removed: list[str] = []
+    startup, desktops = _user_locations()
+    targets = [startup / "EyilGuard.vbs", startup / "HavenShield.vbs"]
+    for d in desktops:
+        targets += [d / "Eyil Guard.lnk", d / "Haven Shield.lnk"]
+    for t in targets:
+        try:
+            if t.exists():
+                t.unlink()
+                removed.append(str(t))
+        except Exception:
+            pass
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        log_dir = Path(local) / "EyilGuard"
+        if log_dir.exists():
+            shutil.rmtree(log_dir, ignore_errors=True)
+            removed.append(str(log_dir))
+    return removed
+
+
+@app.post("/uninstall")
+async def uninstall(req: UninstallRequest):
+    """Remove Eyil Guard from this machine: autostart, desktop shortcut and logs,
+    then stop the listener. Source files + your data stay (delete the project folder
+    yourself for those). Local-only API and gated behind an explicit confirm."""
+    if not req.confirm:
+        return {"ok": False, "error": "confirmation required"}
+    removed = _uninstall_footprint()
+    # Stop the listener shortly after replying so the UI can show the result first.
+    import threading
+    threading.Timer(1.2, lambda: os._exit(0)).start()
+    return {"ok": True, "removed": removed}
+
+
 # ---------- serve the built dashboard (single-process product) ----------
 # When the Eyil UI has been built (`npm run build` in dashboard/), the engine
 # serves it directly so the whole app is one process and one window — no

@@ -14,6 +14,7 @@ import {
   saveYara,
   removeCustomYara,
   listCustomYara,
+  uninstallApp,
 } from "./api.js";
 
 /* Set VITE_USE_API=false to force the offline demo (mock) data. */
@@ -616,6 +617,56 @@ function CustomRules() {
   );
 }
 
+/* Danger zone: remove Eyil Guard from this machine (autostart + shortcut + logs,
+   then the listener stops). Two-step confirm so it can't be hit by accident. */
+function DangerZone() {
+  const [armed, setArmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState("");
+  const doUninstall = async () => {
+    setBusy(true); setErr("");
+    try { await uninstallApp(); setDone(true); }
+    catch { setErr("Couldn't reach the engine. Run uninstall.ps1 instead."); setBusy(false); }
+  };
+  const box = { padding: "14px 0 2px", borderTop: `1.5px dashed ${P.bg}` };
+  if (done) return (
+    <div style={box}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: P.mint }}>Eyil Guard removed</div>
+      <div style={{ fontSize: 12.5, color: P.soft, marginTop: 4 }}>
+        Autostart, the desktop shortcut and the logs are gone, and the listener is stopping.
+        You can close this window now. To delete the program files too, remove the project folder.</div>
+    </div>
+  );
+  return (
+    <div style={box}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: P.coral }}>Remove Eyil Guard</div>
+      <div style={{ fontSize: 12.5, color: P.soft, marginTop: 4 }}>
+        Stops the background listener and removes the autostart entry, the desktop shortcut and the
+        logs. Your project folder and ClamAV are left alone. This closes Eyil.</div>
+      {err && <div style={{ fontSize: 12.5, color: P.coral, marginTop: 6 }}>{err}</div>}
+      {!armed ? (
+        <button className="pressable" onClick={() => setArmed(true)}
+          style={{ marginTop: 10, font: "inherit", fontWeight: 700, fontSize: 13.5, color: P.coral,
+            background: "transparent", border: `1.5px solid ${P.coral}`, borderRadius: 12,
+            padding: "8px 16px", cursor: "pointer" }}>Remove Eyil Guard…</button>
+      ) : (
+        <div style={{ display: "flex", gap: 10, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Are you sure?</span>
+          <button className="pressable" disabled={busy} onClick={doUninstall}
+            style={{ font: "inherit", fontWeight: 700, fontSize: 13.5, color: "#fff", background: P.coral,
+              border: "none", borderRadius: 12, padding: "8px 16px", cursor: "pointer", opacity: busy ? 0.6 : 1 }}>
+            {busy ? "Removing…" : "Yes, remove everything"}</button>
+          <button className="pressable" disabled={busy} onClick={() => setArmed(false)}
+            style={{ font: "inherit", fontWeight: 700, fontSize: 13.5, color: P.soft, background: "transparent",
+              border: `1.5px solid ${P.bg}`, borderRadius: 12, padding: "8px 16px", cursor: "pointer" }}>
+            Cancel</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsModal({ onClose }) {
   const [st, setSt] = useState(null);
   const [allowed, setAllowed] = useState([]);
@@ -657,6 +708,7 @@ function SettingsModal({ onClose }) {
             open any file's <b>Technical</b> view and click <b>“Look up on VirusTotal.com”</b> to
             check it manually in your browser.</div>
         </div>
+        <DangerZone />
       </div>
     </div>
   );

@@ -247,6 +247,18 @@ export async function checkForUpdates() {
   return r.json();
 }
 
+/** Remove Eyil Guard from this machine (autostart + shortcut + logs), then the
+    listener stops. Source files and your data are left in place. */
+export async function uninstallApp() {
+  const r = await fetch(`${httpBase}/uninstall`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirm: true }),
+  });
+  if (!r.ok) throw new Error(`/uninstall ${r.status}`);
+  return r.json();
+}
+
 /** Apply a user decision (allow | quarantine) to a monitored object by pid. */
 export async function sendAction(pid, action) {
   const r = await fetch(`${httpBase}/action`, {
