@@ -145,31 +145,33 @@ def _wait_until_up(timeout: float = 20.0) -> bool:
     return False
 
 
-class _WindowAPI:
-    """Window controls exposed to the custom (frameless) title bar in the UI.
-    The dashboard calls these via window.pywebview.api.<method>()."""
+# The pywebview Window is kept module-level, NOT as an attribute on the js_api object.
+# pywebview introspects the api object to build the JS bridge; a Window attribute makes
+# it recurse into the native control (window.native.AccessibilityObject.Bounds...) until
+# it hits "maximum recursion depth exceeded" and the window dies. Keep the api stateless.
+_WINDOW = None
+_WINDOW_MAXED = False
 
-    def __init__(self):
-        self.window = None
-        self._maximized = False
+
+class _WindowAPI:
+    """Window controls for the custom (frameless) title bar. Called from the UI as
+    window.pywebview.api.<method>(). Holds no object references (see _WINDOW above)."""
 
     def minimize(self):
-        if self.window:
-            self.window.minimize()
+        if _WINDOW is not None:
+            _WINDOW.minimize()
 
     def toggle_maximize(self):
-        if not self.window:
+        global _WINDOW_MAXED
+        if _WINDOW is None:
             return False
-        if self._maximized:
-            self.window.restore()
-        else:
-            self.window.maximize()
-        self._maximized = not self._maximized
-        return self._maximized
+        _WINDOW.restore() if _WINDOW_MAXED else _WINDOW.maximize()
+        _WINDOW_MAXED = not _WINDOW_MAXED
+        return _WINDOW_MAXED
 
     def close(self):
-        if self.window:
-            self.window.destroy()
+        if _WINDOW is not None:
+            _WINDOW.destroy()
 
 
 def main() -> int:
@@ -220,14 +222,12 @@ def main() -> int:
         except KeyboardInterrupt:
             return 0
 
-    api = _WindowAPI()
-    window = webview.create_window(
-        "Eyil Guard", URL, js_api=api,
+    global _WINDOW
+    _WINDOW = webview.create_window(
+        "Eyil Guard", URL, js_api=_WindowAPI(),
         frameless=True, easy_drag=False,          # custom title bar + drag region in the UI
         width=960, height=880, min_size=(760, 640),
-        background_color="#EDEBF6",               # app background — no white flash on load
     )
-    api.window = window
     webview.start()
     return 0
 
