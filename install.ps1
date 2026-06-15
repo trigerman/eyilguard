@@ -74,6 +74,8 @@ sh.Run """$pythonw"" -m eyil --no-window", 0, False
   $sc.Arguments  = "-m eyil"
   $sc.WorkingDirectory = $Root
   $sc.Description = "Open Eyil Guard"
+  $ico = Join-Path $Root "assets\eyil.ico"
+  if (Test-Path $ico) { $sc.IconLocation = "$ico,0" }
   $sc.Save()
   Write-Host "  shortcut:  $lnk"
 } else { Write-Host "[5/6] Skipping autostart (--NoAutostart)" }
