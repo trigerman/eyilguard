@@ -145,6 +145,33 @@ def _wait_until_up(timeout: float = 20.0) -> bool:
     return False
 
 
+class _WindowAPI:
+    """Window controls exposed to the custom (frameless) title bar in the UI.
+    The dashboard calls these via window.pywebview.api.<method>()."""
+
+    def __init__(self):
+        self.window = None
+        self._maximized = False
+
+    def minimize(self):
+        if self.window:
+            self.window.minimize()
+
+    def toggle_maximize(self):
+        if not self.window:
+            return False
+        if self._maximized:
+            self.window.restore()
+        else:
+            self.window.maximize()
+        self._maximized = not self._maximized
+        return self._maximized
+
+    def close(self):
+        if self.window:
+            self.window.destroy()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(prog="eyil", description="Eyil Guard desktop app")
     ap.add_argument("--no-window", "--background", dest="no_window", action="store_true",
@@ -193,7 +220,14 @@ def main() -> int:
         except KeyboardInterrupt:
             return 0
 
-    webview.create_window("Eyil Guard", URL, width=860, height=900, min_size=(680, 600))
+    api = _WindowAPI()
+    window = webview.create_window(
+        "Eyil Guard", URL, js_api=api,
+        frameless=True, easy_drag=False,          # custom title bar + drag region in the UI
+        width=960, height=880, min_size=(760, 640),
+        background_color="#EDEBF6",               # app background — no white flash on load
+    )
+    api.window = window
     webview.start()
     return 0
 

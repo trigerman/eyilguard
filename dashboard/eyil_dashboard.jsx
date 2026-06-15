@@ -760,6 +760,38 @@ function RunningApps({ apps, selId, onPick }) {
   );
 }
 
+/* Native window controls for the frameless desktop window (no-ops in a browser). */
+const nativeWin = () =>
+  (typeof window !== "undefined" && window.pywebview && window.pywebview.api) || null;
+const MinIcon = () => (<svg width="11" height="11" viewBox="0 0 11 11"><line x1="1" y1="6" x2="10" y2="6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>);
+const MaxIcon = () => (<svg width="11" height="11" viewBox="0 0 11 11"><rect x="1.4" y="1.4" width="8.2" height="8.2" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg>);
+const CloseIcon = () => (<svg width="11" height="11" viewBox="0 0 11 11"><path d="M1.6 1.6 L9.4 9.4 M9.4 1.6 L1.6 9.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>);
+
+/* The app's own title bar: brand on the left (drag region), settings + window
+   controls on the right. Replaces the OS window chrome (the window is frameless). */
+function TitleBar({ onSettings }) {
+  const ctl = (fn) => () => { const a = nativeWin(); if (a && a[fn]) a[fn](); };
+  const btn = { width: 46, height: 44, border: "none", background: "transparent",
+    cursor: "pointer", color: P.soft, display: "grid", placeItems: "center", font: "inherit" };
+  return (
+    <div style={{ flex: "0 0 auto", height: 44, display: "flex", alignItems: "stretch",
+      background: P.surface, borderBottom: `1px solid ${P.bg}`, userSelect: "none" }}>
+      <div className="pywebview-drag-region" style={{ flex: 1, display: "flex", alignItems: "center",
+        gap: 9, padding: "0 14px", minWidth: 0 }}>
+        <Logo size={22} />
+        <span style={{ fontWeight: 800, fontSize: 14, letterSpacing: -0.2 }}>Eyil Guard</span>
+        <span style={{ fontSize: 11.5, color: P.soft, whiteSpace: "nowrap", overflow: "hidden",
+          textOverflow: "ellipsis" }}>· watching quietly</span>
+      </div>
+      <button className="winbtn" onClick={onSettings} title="Settings"
+        style={{ ...btn, fontSize: 16 }}>⚙</button>
+      <button className="winbtn" onClick={ctl("minimize")} title="Minimize" style={btn}><MinIcon /></button>
+      <button className="winbtn" onClick={ctl("toggle_maximize")} title="Maximize" style={btn}><MaxIcon /></button>
+      <button className="winbtn winbtn-close" onClick={ctl("close")} title="Close" style={btn}><CloseIcon /></button>
+    </div>
+  );
+}
+
 export default function App() {
   const [settings, setSettings] = useState(false);
   const { files: liveFiles, health, connected } = useEngine(USE_API);
@@ -797,8 +829,8 @@ export default function App() {
   };
 
   return (
-    <div style={{ background: P.bg, minHeight: "100vh", padding: "32px 22px 48px",
-      fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif", color: P.ink }}>
+    <div style={{ background: P.bg, height: "100vh", overflow: "hidden", display: "flex",
+      flexDirection: "column", fontFamily: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif", color: P.ink }}>
       <style>{`
         @keyframes floaty { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-7px) } }
         .float { animation: floaty 4s ease-in-out infinite; }
@@ -806,32 +838,27 @@ export default function App() {
         .card:hover { transform: translateY(-3px); }
         .pressable { cursor:pointer; transition: transform .12s ease; }
         .pressable:active { transform: scale(.97); }
+        .winbtn { transition: background .12s ease, color .12s ease; }
+        .winbtn:hover { background: ${P.bg}; color: ${P.ink}; }
+        .winbtn-close:hover { background: ${P.coral}; color: #fff; }
+        .scroll::-webkit-scrollbar { width: 10px; }
+        .scroll::-webkit-scrollbar-thumb { background: #2E2A4F22; border-radius: 8px; }
         @media (prefers-reduced-motion: reduce){ .float{ animation:none } }
       `}</style>
 
-      {usingDemo && <DemoBanner />}
-
       {settings && <SettingsModal onClose={() => setSettings(false)} />}
 
-      <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        {/* app header — logo, name, settings */}
-        <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 22 }}>
-          <Logo size={34} />
-          <div style={{ lineHeight: 1.15 }}>
-            <div style={{ fontWeight: 800, fontSize: 17, letterSpacing: -0.2 }}>Eyil Guard</div>
-            <div style={{ fontSize: 11.5, color: P.soft }}>open-source antivirus · watching quietly</div>
-          </div>
-          <button className="pressable" onClick={() => setSettings(true)} title="Connections & keys"
-            style={{ marginLeft: "auto", font: "inherit", fontSize: 18, width: 40, height: 40, borderRadius: 12,
-              border: "none", background: P.surface, boxShadow: "0 4px 14px #2E2A4F12", cursor: "pointer", color: P.ink }}>⚙</button>
-        </div>
+      <TitleBar onSettings={() => setSettings(true)} />
+      {usingDemo && <DemoBanner />}
 
+      <div className="scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "24px 22px 28px" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto" }}>
         {/* hero */}
-        <div style={{ textAlign: "center", marginBottom: 26 }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
           <div className="float" style={{ display: "inline-block" }}>
             <Guardian mood={anyRisk ? "alert" : "calm"} />
           </div>
-          <h1 style={{ fontSize: 30, fontWeight: 700, margin: "8px 0 4px", letterSpacing: -0.5 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 700, margin: "4px 0 3px", letterSpacing: -0.5 }}>
             {anyRisk ? "One thing needed me." : "Everything's calm."}</h1>
           <p style={{ fontSize: 15, color: P.soft, margin: 0 }}>
             {anyRisk ? "I stopped something and tucked it away. Here's what happened."
@@ -972,6 +999,7 @@ export default function App() {
         )}
 
         <HealthStrip health={health} connected={connected} />
+      </div>
       </div>
     </div>
   );
