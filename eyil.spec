@@ -1,4 +1,4 @@
-# Eyil Shield - PyInstaller spec.  Build:  python build_exe.py   (or)  pyinstaller eyil.spec --noconfirm --clean
+# Eyil Guard - PyInstaller spec.  Build:  python build_exe.py   (or)  pyinstaller eyil.spec --noconfirm --clean
 #
 # Produces dist/Eyil/Eyil.exe — a windowed launcher that starts the engine,
 # serves the bundled dashboard, and opens the native window. ClamAV (clamd) is

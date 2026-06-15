@@ -24,7 +24,7 @@ function Find-MsBuild {
 }
 
 $msbuild = Find-MsBuild
-& $msbuild (Join-Path $Root "EyilShieldDriver.sln") `
+& $msbuild (Join-Path $Root "EyilGuardDriver.sln") `
   /m `
   /p:Configuration=$Configuration `
   /p:Platform=$Platform `
@@ -50,17 +50,17 @@ if ($Sign) {
   $signtool = Get-Command signtool.exe -ErrorAction SilentlyContinue
   if (-not $signtool) { throw "signtool.exe not found. Install the Windows SDK/WDK tools." }
   $cert = Get-ChildItem Cert:\LocalMachine\My |
-    Where-Object { $_.Subject -eq "CN=Eyil Shield Test Driver" } |
+    Where-Object { $_.Subject -eq "CN=Eyil Guard Test Driver" } |
     Select-Object -First 1
   if (-not $cert) {
     $cert = New-SelfSignedCertificate `
       -Type CodeSigningCert `
-      -Subject "CN=Eyil Shield Test Driver" `
+      -Subject "CN=Eyil Guard Test Driver" `
       -CertStoreLocation Cert:\LocalMachine\My
   }
   $cat = Join-Path $Out "avfilter.cat"
   if (Test-Path $cat) {
-    & $signtool.Source sign /v /fd SHA256 /s My /n "Eyil Shield Test Driver" $cat
+    & $signtool.Source sign /v /fd SHA256 /s My /n "Eyil Guard Test Driver" $cat
   } else {
     Write-Warning "No avfilter.cat found to sign."
   }

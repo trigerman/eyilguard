@@ -1,4 +1,4 @@
-# Eyil Shield - setup / installer (user-level; no administrator rights needed).
+# Eyil Guard - setup / installer (user-level; no administrator rights needed).
 #
 #   powershell -ExecutionPolicy Bypass -File install.ps1
 #
@@ -12,7 +12,7 @@ param([switch]$SkipBuild, [switch]$NoAutostart)
 # we check exit codes explicitly and warn rather than aborting the whole setup.
 $ErrorActionPreference = "Continue"
 $Root = $PSScriptRoot
-Write-Host "Eyil Shield setup  -  $Root" -ForegroundColor Cyan
+Write-Host "Eyil Guard setup  -  $Root" -ForegroundColor Cyan
 
 function Need($n) { Get-Command $n -ErrorAction SilentlyContinue }
 
@@ -57,9 +57,9 @@ Pop-Location
 if (-not $NoAutostart) {
   Write-Host "`n[5/6] Installing the background listener (autostart at logon)..." -ForegroundColor Yellow
   $startup = [Environment]::GetFolderPath('Startup')
-  $vbs = Join-Path $startup "EyilShield.vbs"
+  $vbs = Join-Path $startup "EyilGuard.vbs"
   @"
-' Eyil Shield background listener - starts hidden at logon
+' Eyil Guard background listener - starts hidden at logon
 Set sh = CreateObject("WScript.Shell")
 sh.CurrentDirectory = "$Root"
 sh.Run """$pythonw"" -m eyil --no-window", 0, False
@@ -67,13 +67,13 @@ sh.Run """$pythonw"" -m eyil --no-window", 0, False
   Write-Host "  autostart: $vbs"
 
   $desktop = [Environment]::GetFolderPath('Desktop')
-  $lnk = Join-Path $desktop "Eyil Shield.lnk"
+  $lnk = Join-Path $desktop "Eyil Guard.lnk"
   $ws = New-Object -ComObject WScript.Shell
   $sc = $ws.CreateShortcut($lnk)
   $sc.TargetPath = $pythonw
   $sc.Arguments  = "-m eyil"
   $sc.WorkingDirectory = $Root
-  $sc.Description = "Open Eyil Shield"
+  $sc.Description = "Open Eyil Guard"
   $sc.Save()
   Write-Host "  shortcut:  $lnk"
 } else { Write-Host "[5/6] Skipping autostart (--NoAutostart)" }
@@ -87,5 +87,5 @@ try {
   Write-Host "`n  OK - Eyil is running.  Protection: $state  |  blocklist $($h.hash_feed_count) hashes  |  C2 $($h.c2_count) IPs" -ForegroundColor Green
 } catch { Write-Warning "Listener is starting; give it a few seconds, then open the desktop shortcut." }
 
-Write-Host "`nDone. Double-click 'Eyil Shield' on your desktop to open the dashboard." -ForegroundColor Cyan
+Write-Host "`nDone. Double-click 'Eyil Guard' on your desktop to open the dashboard." -ForegroundColor Cyan
 Write-Host "To remove: powershell -ExecutionPolicy Bypass -File uninstall.ps1" -ForegroundColor DarkGray

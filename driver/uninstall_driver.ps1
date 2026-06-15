@@ -1,10 +1,10 @@
-# Eyil Shield minifilter — stop, unload, and remove (run ELEVATED in the VM).
+# Eyil Guard minifilter — stop, unload, and remove (run ELEVATED in the VM).
 #   powershell -ExecutionPolicy Bypass -File uninstall_driver.ps1
 $ErrorActionPreference = "SilentlyContinue"
 
 Write-Host "Stopping scanner service..." -ForegroundColor Yellow
-sc.exe stop   EyilShieldScan | Out-Null
-sc.exe delete EyilShieldScan | Out-Null
+sc.exe stop   EyilGuardScan | Out-Null
+sc.exe delete EyilGuardScan | Out-Null
 
 Write-Host "Unloading minifilter..." -ForegroundColor Yellow
 fltmc unload avfilter

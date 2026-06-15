@@ -13,7 +13,7 @@ Write-Host "Attempting to read it. Expected result with driver+service active: a
 
 try {
   Get-Content -LiteralPath $Path -ErrorAction Stop | Out-Null
-  Write-Warning "Read succeeded. Check: fltmc filters, sc query EyilShieldScan, and scanner service logs."
+  Write-Warning "Read succeeded. Check: fltmc filters, sc query EyilGuardScan, and scanner service logs."
 } catch {
   Write-Host "Read failed as expected: $($_.Exception.Message)" -ForegroundColor Green
 }

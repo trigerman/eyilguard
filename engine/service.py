@@ -1,4 +1,4 @@
-"""Eyil Shield engine API.
+"""Eyil Guard engine API.
 
 Ties the scanners, behavioral engine, and feeds together behind a small local API
 that the Eyil dashboard consumes. Run:
@@ -30,7 +30,7 @@ from .updater import AutoUpdater
 from . import feeds
 from . import keystore
 
-app = FastAPI(title="Eyil Shield Engine")
+app = FastAPI(title="Eyil Guard Engine")
 
 # The dashboard runs in a browser/desktop shell; allow local origins.
 app.add_middleware(

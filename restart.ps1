@@ -1,4 +1,4 @@
-# Restart Eyil Shield so the latest code (and clamd config) takes effect.
+# Restart Eyil Guard so the latest code (and clamd config) takes effect.
 #   powershell -ExecutionPolicy Bypass -File restart.ps1
 $ErrorActionPreference = "SilentlyContinue"
 $Root = $PSScriptRoot

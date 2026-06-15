@@ -1,4 +1,4 @@
-# Eyil Shield — Kernel Minifilter: what it is & how to build/run it on a VM
+# Eyil Guard — Kernel Minifilter: what it is & how to build/run it on a VM
 
 This is the **real-time, pre-execution-blocking** layer — the one piece that turns
 Eyil from "detect and react" into "stop it before it runs." It is **VM-only** work:
@@ -106,12 +106,12 @@ powershell -ExecutionPolicy Bypass -File install_driver.ps1
 ```
 This creates a self-signed test cert, trusts it machine-wide, builds + signs the
 `.cat`, signs the `.sys`, installs the INF (`pnputil`), loads the filter
-(`fltmc load avfilter`), and creates + starts the `EyilShieldScan` service.
+(`fltmc load avfilter`), and creates + starts the `EyilGuardScan` service.
 
 **Verify it loaded:**
 ```powershell
 fltmc filters          # 'avfilter' should appear with altitude 321410
-sc query EyilShieldScan
+sc query EyilGuardScan
 ```
 
 ## 6. Test it (safely, with EICAR)
@@ -128,7 +128,7 @@ type eicar_test.com      # opening it should fail: "Operation did not complete s
 The scanner console/service log shows `... -> INFECTED (blocking)`. To block real
 known-bad files, point the service at the engine's live feed:
 ```powershell
-sc.exe stop EyilShieldScan
+sc.exe stop EyilGuardScan
 # run interactively against the auto-updated blocklist:
 .\scanner_service.exe --hashes ..\data\hashes.txt
 ```

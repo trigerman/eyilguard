@@ -1,4 +1,4 @@
-"""Launch Eyil Shield as a desktop product.
+"""Launch Eyil Guard as a desktop product.
 
 Self-sufficient launcher: it makes sure the ClamAV daemon (clamd) is running,
 boots the FastAPI engine (engine.service:app) on 127.0.0.1 in a background
@@ -42,7 +42,7 @@ def _ensure_streams() -> None:
         return
     base = os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()
     try:
-        log_dir = Path(base) / "EyilShield"
+        log_dir = Path(base) / "EyilGuard"
         log_dir.mkdir(parents=True, exist_ok=True)
         f = open(log_dir / "eyil.log", "a", buffering=1, encoding="utf-8")
     except Exception:
@@ -135,7 +135,7 @@ def _wait_until_up(timeout: float = 20.0) -> bool:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(prog="eyil", description="Eyil Shield desktop app")
+    ap = argparse.ArgumentParser(prog="eyil", description="Eyil Guard desktop app")
     ap.add_argument("--no-window", "--background", dest="no_window", action="store_true",
                     help="run as the headless background listener (no native window)")
     args = ap.parse_args()
@@ -182,7 +182,7 @@ def main() -> int:
         except KeyboardInterrupt:
             return 0
 
-    webview.create_window("Eyil Shield", URL, width=860, height=900, min_size=(680, 600))
+    webview.create_window("Eyil Guard", URL, width=860, height=900, min_size=(680, 600))
     webview.start()
     return 0
 

@@ -1,5 +1,5 @@
 /*
- * Eyil Shield - bundled YARA rules for common offensive-security tools.
+ * Eyil Guard - bundled YARA rules for common offensive-security tools.
  *
  * These are Eyil's own rules (so they ship license-clean with the product, unlike
  * TLP-restricted community packs). They flag well-known hacktools by their
@@ -11,7 +11,7 @@ rule HackTool_WinPEAS
 {
     meta:
         description = "winPEAS - Windows privilege-escalation enumeration (PEASS-ng)"
-        author = "Eyil Shield"
+        author = "Eyil Guard"
         reference = "https://github.com/carlospolop/PEASS-ng"
     strings:
         $a1 = "winPEAS" ascii wide nocase
@@ -26,7 +26,7 @@ rule HackTool_Mimikatz
 {
     meta:
         description = "mimikatz - credential dumping"
-        author = "Eyil Shield"
+        author = "Eyil Guard"
     strings:
         $a1 = "mimikatz" ascii wide nocase
         $a2 = "gentilkiwi" ascii wide nocase
@@ -40,7 +40,7 @@ rule HackTool_LaZagne
 {
     meta:
         description = "LaZagne - credential harvesting"
-        author = "Eyil Shield"
+        author = "Eyil Guard"
     strings:
         $a1 = "lazagne" ascii wide nocase
         $a2 = "AlessandroZ" ascii wide nocase
@@ -53,7 +53,7 @@ rule HackTool_Rubeus
 {
     meta:
         description = "Rubeus - Kerberos abuse toolkit"
-        author = "Eyil Shield"
+        author = "Eyil Guard"
     strings:
         $a1 = "Rubeus" ascii wide
         $a2 = "asktgt" ascii wide nocase
@@ -67,7 +67,7 @@ rule HackTool_SharpHound
 {
     meta:
         description = "SharpHound / BloodHound collector"
-        author = "Eyil Shield"
+        author = "Eyil Guard"
     strings:
         $a1 = "SharpHound" ascii wide
         $a2 = "BloodHound" ascii wide

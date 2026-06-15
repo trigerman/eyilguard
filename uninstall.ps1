@@ -1,4 +1,4 @@
-# Eyil Shield - uninstall (removes autostart + shortcut, stops the listener).
+# Eyil Guard - uninstall (removes autostart + shortcut, stops the listener).
 # Leaves ClamAV and your data/keys untouched.
 #
 #   powershell -ExecutionPolicy Bypass -File uninstall.ps1
@@ -13,8 +13,8 @@ Get-CimInstance Win32_Process -Filter "Name='pythonw.exe' OR Name='python.exe'" 
 # Remove autostart + desktop shortcut
 $startup = [Environment]::GetFolderPath('Startup')
 $desktop = [Environment]::GetFolderPath('Desktop')
-[System.IO.File]::Delete((Join-Path $startup "EyilShield.vbs"))
-[System.IO.File]::Delete((Join-Path $desktop "Eyil Shield.lnk"))
+[System.IO.File]::Delete((Join-Path $startup "EyilGuard.vbs"))
+[System.IO.File]::Delete((Join-Path $desktop "Eyil Guard.lnk"))
 
 Write-Host "Eyil autostart + shortcut removed and the listener stopped." -ForegroundColor Green
 Write-Host "ClamAV, signatures, and your keys were left intact." -ForegroundColor DarkGray

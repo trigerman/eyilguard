@@ -30,7 +30,7 @@
 #include <ctype.h>
 
 #define HASH_HEX_LEN 64
-#define SERVICE_NAME L"EyilShieldScan"
+#define SERVICE_NAME L"EyilGuardScan"
 
 #include "avscan_protocol.h"
 

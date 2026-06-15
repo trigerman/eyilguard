@@ -1,4 +1,4 @@
-# Eyil Shield
+# Eyil Guard
 
 An **open-source (GPLv3) endpoint protection tool for Windows** that's honest about
 what it does. Its difference isn't out-detecting commercial antivirus — it's
@@ -22,7 +22,7 @@ A red shield flashes, says *"threat blocked — trust me,"* and tells you nothin
 the file? What was it doing? Where did it live, what did it touch, who did it talk to?
 You're not allowed to know.
 
-**Eyil Shield is the AV I always wanted** — one where I can see exactly what every file is
+**Eyil Guard is the AV I always wanted** — one where I can see exactly what every file is
 doing, in plain language, one toggle away from the full forensic truth (paths, hashes, IPs,
 the event log). Nothing hidden, nothing dumbed-down-and-then-lost. The same file makes sense
 to a curious beginner and to a malware analyst.
@@ -136,7 +136,7 @@ powershell -ExecutionPolicy Bypass -File build_exe.ps1   # → dist\Eyil\Eyil.ex
 ```
 A windowed bundle with the dashboard inside. ClamAV (clamd) is installed separately, not
 bundled. (Note: the frozen app currently keeps its `data/` inside the bundle folder;
-moving runtime state to `%LOCALAPPDATA%\EyilShield` is a planned refinement.)
+moving runtime state to `%LOCALAPPDATA%\EyilGuard` is a planned refinement.)
 
 **Live vs. demo data (honest by default):** the dashboard talks to the engine on its own
 origin. If the engine is unreachable it falls back to clearly-labelled **demo data** (a

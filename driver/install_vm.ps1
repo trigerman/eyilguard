@@ -25,19 +25,19 @@ Write-Host "Loading AvFilter..." -ForegroundColor Yellow
 fltmc load AvFilter
 
 Write-Host "Installing scanner bridge service..." -ForegroundColor Yellow
-$existing = sc.exe query EyilShieldScan 2>$null
+$existing = sc.exe query EyilGuardScan 2>$null
 if ($LASTEXITCODE -eq 0) {
-  sc.exe stop EyilShieldScan | Out-Null
+  sc.exe stop EyilGuardScan | Out-Null
   Start-Sleep -Seconds 1
-  sc.exe delete EyilShieldScan | Out-Null
+  sc.exe delete EyilGuardScan | Out-Null
   Start-Sleep -Seconds 1
 }
 
 $binPath = "`"$scanner`" --service --hashes `"$HashFile`""
-sc.exe create EyilShieldScan binPath= $binPath start= demand obj= LocalSystem DisplayName= "Eyil Shield Scanner Bridge"
-sc.exe start EyilShieldScan
+sc.exe create EyilGuardScan binPath= $binPath start= demand obj= LocalSystem DisplayName= "Eyil Guard Scanner Bridge"
+sc.exe start EyilGuardScan
 
 Write-Host "`nDriver loaded:" -ForegroundColor Green
 fltmc filters | Select-String AvFilter
 Write-Host "`nScanner service:" -ForegroundColor Green
-sc.exe query EyilShieldScan
+sc.exe query EyilGuardScan

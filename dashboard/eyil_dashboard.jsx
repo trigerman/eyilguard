@@ -169,29 +169,52 @@ const MOCK_FILES = [
 /* ---------- hand-drawn illustrations ---------- */
 function Guardian({ mood }) {
   const alert = mood === "alert";
+  const ink = P.ink, surf = P.surface;
+  // A castellated body: n merlons across x0..x1 (tops at yTop, crenel floor at yFloor),
+  // then straight walls down to `bottom`. Returns an SVG path string.
+  const fort = (x0, x1, yTop, yFloor, n, bottom) => {
+    const seg = 2 * n - 1, w = (x1 - x0) / seg, yAt = (s) => (s % 2 === 0 ? yTop : yFloor);
+    let d = `M ${x0} ${yTop}`;
+    for (let s = 0; s < seg; s++) {
+      const xe = x0 + (s + 1) * w;
+      d += ` L ${xe} ${yAt(s)}`;
+      if (s < seg - 1) d += ` L ${xe} ${yAt(s + 1)}`;
+    }
+    return d + ` L ${x1} ${bottom} L ${x0} ${bottom} Z`;
+  };
+  const flag = alert ? P.coral : P.mint;
   return (
     <svg width="132" height="148" viewBox="0 0 132 148" fill="none">
-      <ellipse cx="66" cy="80" rx="62" ry="60" fill={alert ? "#F2795B22" : "#5FBF9B22"} />
-      <path d="M66 18 C 90 26, 108 26, 110 30 C 114 70, 100 116, 66 134
-               C 32 116, 18 70, 22 30 C 24 26, 42 26, 66 18 Z"
-        fill={P.surface} stroke={P.ink} strokeWidth="3" strokeLinejoin="round" />
-      <circle cx="48" cy="78" r="6" fill={alert ? "#F2795B33" : "#FF9A8B44"} />
-      <circle cx="84" cy="78" r="6" fill={alert ? "#F2795B33" : "#FF9A8B44"} />
+      <ellipse cx="66" cy="86" rx="62" ry="56" fill={alert ? "#F2795B22" : "#5FBF9B22"} />
+      {/* central keep + two flanking towers */}
+      <path d={fort(34, 98, 62, 72, 4, 130)} fill={surf} stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      <path d={fort(14, 40, 42, 52, 2, 130)} fill={surf} stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      <path d={fort(92, 118, 42, 52, 2, 130)} fill={surf} stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      {/* arrow-slit windows + pennant flags on the towers */}
+      <path d="M27 72 v9 M105 72 v9" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+      <path d="M27 42 v-13" stroke={ink} strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M27 29 l11 3.5 l-11 3.5 z" fill={flag} stroke={ink} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M105 42 v-13" stroke={ink} strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M105 29 l11 3.5 l-11 3.5 z" fill={flag} stroke={ink} strokeWidth="1.5" strokeLinejoin="round" />
+      {/* gate */}
+      <path d="M58 130 V114 a8 8 0 0 1 16 0 V130 Z" fill={alert ? "#F2795B1A" : "#5FBF9B1A"} stroke={ink} strokeWidth="2.6" strokeLinejoin="round" />
+      {/* cheeks */}
+      <circle cx="47" cy="92" r="4.6" fill={alert ? "#F2795B33" : "#FF9A8B44"} />
+      <circle cx="85" cy="92" r="4.6" fill={alert ? "#F2795B33" : "#FF9A8B44"} />
+      {/* face on the keep */}
       {alert ? (
         <>
-          <path d="M44 60 l10 4" stroke={P.ink} strokeWidth="3" strokeLinecap="round" />
-          <path d="M88 60 l-10 4" stroke={P.ink} strokeWidth="3" strokeLinecap="round" />
-          <circle cx="50" cy="68" r="3.4" fill={P.ink} />
-          <circle cx="82" cy="68" r="3.4" fill={P.ink} />
-          <path d="M56 92 Q 66 86, 76 92" stroke={P.ink} strokeWidth="3" strokeLinecap="round" fill="none" />
-          <path d="M104 36 l4 -12 l4 12" stroke={P.coral} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <path d="M43 82 l9 3" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+          <path d="M89 82 l-9 3" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+          <circle cx="50" cy="89" r="3.2" fill={ink} />
+          <circle cx="82" cy="89" r="3.2" fill={ink} />
+          <path d="M58 102 Q 66 97, 74 102" stroke={ink} strokeWidth="2.6" strokeLinecap="round" fill="none" />
         </>
       ) : (
         <>
-          <circle cx="50" cy="66" r="3.8" fill={P.ink} />
-          <circle cx="82" cy="66" r="3.8" fill={P.ink} />
-          <path d="M54 88 Q 66 98, 78 88" stroke={P.ink} strokeWidth="3" strokeLinecap="round" fill="none" />
-          <path d="M100 40 l0 8 M96 44 l8 0" stroke={P.mint} strokeWidth="2.6" strokeLinecap="round" />
+          <circle cx="50" cy="86" r="3.6" fill={ink} />
+          <circle cx="82" cy="86" r="3.6" fill={ink} />
+          <path d="M57 97 Q 66 104, 75 97" stroke={ink} strokeWidth="2.6" strokeLinecap="round" fill="none" />
         </>
       )}
     </svg>

@@ -1,5 +1,5 @@
 ;;;
-;;; avfilter.inf — VM/test install information for the Eyil Shield minifilter.
+;;; avfilter.inf — VM/test install information for the Eyil Guard minifilter.
 ;;;
 ;;; This is demand-start and test-altitude only. For distribution, request a
 ;;; Microsoft-assigned altitude and submit a signed package.
@@ -52,11 +52,11 @@ avfilter.sys = 1
 1 = %DiskName%,,,
 
 [Strings]
-ProviderName       = "Eyil Shield"
+ProviderName       = "Eyil Guard"
 ServiceName        = "AvFilter"
-ServiceDescription = "Eyil Shield test on-access AV minifilter"
+ServiceDescription = "Eyil Guard test on-access AV minifilter"
 DriverName         = "avfilter"
 DefaultInstance    = "AvFilter Instance"
 Instance1.Name     = "AvFilter Instance"
 Instance1.Altitude = "321410"
-DiskName           = "Eyil Shield Driver Disk"
+DiskName           = "Eyil Guard Driver Disk"
