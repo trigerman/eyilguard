@@ -59,15 +59,25 @@ def _port_open(port: int, host: str = HOST) -> bool:
         return s.connect_ex((host, port)) == 0
 
 
+def _hidden_startupinfo():
+    """A STARTUPINFO that hides any console window a child process would create.
+    Belt-and-suspenders alongside CREATE_NO_WINDOW (some launchers/shims ignore it)."""
+    if os.name != "nt":
+        return None
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0  # SW_HIDE
+    return si
+
+
 def _find_clamd() -> str | None:
-    exe = shutil.which("clamd")
-    if exe:
-        return exe
+    # Prefer the *real* binary over a scoop shim — the shim spawns its own visible
+    # console window, which is what users were seeing pop up on launch.
     for cand in (Path.home() / "scoop" / "apps" / "clamav" / "current" / "clamd.exe",
                  Path(r"C:\Program Files\ClamAV\clamd.exe")):
         if cand.exists():
             return str(cand)
-    return None
+    return shutil.which("clamd")
 
 
 def _ensure_clamd() -> str:
@@ -80,13 +90,14 @@ def _ensure_clamd() -> str:
     if not exe or not CLAM_CONF.exists():
         return "clamd not found — running without ClamAV signatures"
     try:
-        flags = 0
-        if os.name == "nt":
-            flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) | getattr(
-                subprocess, "DETACHED_PROCESS", 0)
+        # CREATE_NO_WINDOW only — do NOT combine with DETACHED_PROCESS (that pair is an
+        # invalid Win32 combo and lets a console window leak through).
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
         with open(CLAM_LOG, "ab") as log:
             subprocess.Popen([exe, f"--config-file={CLAM_CONF}"],
-                             stdout=log, stderr=log, creationflags=flags, close_fds=True)
+                             stdout=log, stderr=log, stdin=subprocess.DEVNULL,
+                             creationflags=flags, startupinfo=_hidden_startupinfo(),
+                             close_fds=True)
     except Exception as e:
         return f"could not start clamd: {e}"
     for _ in range(60):                      # loading ~8.5M signatures takes a moment

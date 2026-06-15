@@ -38,6 +38,7 @@ exe = EXE(
     pyz, a.scripts, [],
     exclude_binaries=True,
     name="Eyil",
+    icon="assets/eyil.ico",   # fortress app icon (taskbar + window + file)
     console=False,            # windowed app (no console); launcher redirects stdio to a log
 
     disable_windowed_traceback=False,

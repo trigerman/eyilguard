@@ -662,6 +662,52 @@ function SettingsModal({ onClose }) {
   );
 }
 
+/* Small app-icon fortress for the header (a flat, face-less version of the mascot). */
+function Logo({ size = 32 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-label="Eyil Guard">
+      <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill={P.accent} />
+      <path d="M7 24 V14 h2.4 v-3 h2.4 v3 h2.4 v-3 h2.4 v3 h2.4 v-3 h2.4 v3 H25 V24 Z" fill="#fff" />
+      <rect x="13.6" y="18.5" width="4.8" height="5.5" rx="1.4" fill={P.accent} />
+    </svg>
+  );
+}
+
+/* The live process inventory: everything running, all safe. Collapsed by default so
+   the home stays calm — but one click reveals the full list (the transparency promise). */
+function RunningApps({ apps, selId, onPick }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ background: P.surface, borderRadius: 20, boxShadow: "0 4px 14px #2E2A4F0F",
+      marginBottom: 18, overflow: "hidden" }}>
+      <button className="pressable" onClick={() => setOpen(!open)}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, font: "inherit",
+          background: "transparent", border: "none", padding: "14px 18px", cursor: "pointer",
+          color: P.ink, textAlign: "left" }}>
+        <span style={{ width: 9, height: 9, borderRadius: 9, background: P.mint, flex: "0 0 auto" }} />
+        <span style={{ fontWeight: 700, fontSize: 14.5 }}>Running apps</span>
+        <span style={{ fontSize: 13, color: P.soft }}>{apps.length} watched · all safe</span>
+        <span style={{ marginLeft: "auto", color: P.soft, fontSize: 18, lineHeight: 1,
+          transform: open ? "rotate(90deg)" : "none", transition: "transform .15s" }}>›</span>
+      </button>
+      {open && (
+        <div style={{ borderTop: `1.5px solid ${P.bg}`, maxHeight: 300, overflowY: "auto" }}>
+          {apps.map((f) => (
+            <div key={f.id} className="pressable" onClick={() => onPick(f.id)}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px",
+                borderTop: `1px solid ${P.bg}`, background: f.id === selId ? P.bg : "transparent" }}>
+              <span style={{ width: 7, height: 7, borderRadius: 7, background: P.mint, flex: "0 0 auto" }} />
+              <span style={{ fontSize: 13.5, fontWeight: 600, flex: 1, whiteSpace: "nowrap",
+                overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</span>
+              <span style={{ fontSize: 12, color: P.soft }}>Safe ›</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [settings, setSettings] = useState(false);
   const { files: liveFiles, health, connected } = useEngine(USE_API);
@@ -672,12 +718,16 @@ export default function App() {
 
   // keep the selection valid as the live list changes
   useEffect(() => {
-    if (!files.length) return;
-    if (!files.find((f) => f.id === selId)) setSelId(files[0].id);
+    if (!files.length) { if (selId !== null) setSelId(null); return; }
+    if (files.find((f) => f.id === selId)) return;            // keep a valid selection
+    const firstThreat = files.find((f) => f.state !== "safe");
+    setSelId(firstThreat ? firstThreat.id : null);            // default to a threat, else none
   }, [files, selId]);
 
-  const sel = files.find((f) => f.id === selId) || files[0] || null;
+  const sel = files.find((f) => f.id === selId) || null;
   const anyRisk = files.some((f) => f.state === "risk");
+  const threats = files.filter((f) => f.state !== "safe");    // risk + watch
+  const safeApps = files.filter((f) => f.state === "safe");   // the calm running inventory
 
   // Action buttons act only against the live engine; in demo mode they're disabled.
   const canAct = connected && sel && sel.pid != null;
@@ -709,16 +759,23 @@ export default function App() {
 
       {usingDemo && <DemoBanner />}
 
-      <button className="pressable" onClick={() => setSettings(true)} title="Connections & keys"
-        style={{ position: "fixed", top: 18, right: 18, zIndex: 40, font: "inherit", fontSize: 18,
-          width: 42, height: 42, borderRadius: 12, border: "none", background: P.surface,
-          boxShadow: "0 4px 14px #2E2A4F1A", cursor: "pointer", color: P.ink }}>⚙</button>
       {settings && <SettingsModal onClose={() => setSettings(false)} />}
 
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        {/* app header — logo, name, settings */}
+        <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 22 }}>
+          <Logo size={34} />
+          <div style={{ lineHeight: 1.15 }}>
+            <div style={{ fontWeight: 800, fontSize: 17, letterSpacing: -0.2 }}>Eyil Guard</div>
+            <div style={{ fontSize: 11.5, color: P.soft }}>open-source antivirus · watching quietly</div>
+          </div>
+          <button className="pressable" onClick={() => setSettings(true)} title="Connections & keys"
+            style={{ marginLeft: "auto", font: "inherit", fontSize: 18, width: 40, height: 40, borderRadius: 12,
+              border: "none", background: P.surface, boxShadow: "0 4px 14px #2E2A4F12", cursor: "pointer", color: P.ink }}>⚙</button>
+        </div>
+
         {/* hero */}
         <div style={{ textAlign: "center", marginBottom: 26 }}>
-          <div style={{ fontSize: 13, letterSpacing: 3, color: P.soft, marginBottom: 10 }}>E Y I L</div>
           <div className="float" style={{ display: "inline-block" }}>
             <Guardian mood={anyRisk ? "alert" : "calm"} />
           </div>
@@ -726,19 +783,15 @@ export default function App() {
             {anyRisk ? "One thing needed me." : "Everything's calm."}</h1>
           <p style={{ fontSize: 15, color: P.soft, margin: 0 }}>
             {anyRisk ? "I stopped something and tucked it away. Here's what happened."
-                     : "I'm watching your files. Nothing to worry about."}</p>
+                     : threats.length ? "A couple of things are worth a glance — nothing urgent."
+                     : "I'm watching everything that runs. Nothing needs you right now."}</p>
           <ScanNowButton connected={connected} />
         </div>
 
-        {/* file row, or a calm empty state when the engine has seen nothing yet */}
-        {files.length === 0 ? (
-          <div style={{ textAlign: "center", color: P.soft, fontSize: 14.5, background: P.surface,
-            borderRadius: 24, padding: "40px 24px", marginBottom: 18, boxShadow: "0 4px 14px #2E2A4F0F" }}>
-            Nothing has happened yet. Eyil is watching — files appear here as they’re opened or scanned.
-          </div>
-        ) : (
+        {/* threats first — only things that actually need attention get a card */}
+        {threats.length > 0 && (
           <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, marginBottom: 18 }}>
-            {files.map((f) => {
+            {threats.map((f) => {
               const on = f.id === selId;
               return (
                 <div key={f.id} className="card" onClick={() => setSelId(f.id)}
@@ -753,6 +806,19 @@ export default function App() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* everything else that's running, all safe — collapsed so it never clutters */}
+        {safeApps.length > 0 && (
+          <RunningApps apps={safeApps} selId={selId} onPick={setSelId} />
+        )}
+
+        {/* the engine has genuinely seen nothing yet */}
+        {files.length === 0 && (
+          <div style={{ textAlign: "center", color: P.soft, fontSize: 14.5, background: P.surface,
+            borderRadius: 24, padding: "40px 24px", marginBottom: 18, boxShadow: "0 4px 14px #2E2A4F0F" }}>
+            Nothing has happened yet. Eyil is watching — files appear here as they’re opened or scanned.
           </div>
         )}
 
@@ -793,11 +859,11 @@ export default function App() {
                 <div style={{ borderTop: `1.5px dashed ${P.bg}`, marginTop: 14 }}>
                   <Row icon={<IcoHome />} label="Where it lives">{sel.home}</Row>
                   <div style={{ borderTop: `1.5px dashed ${P.bg}` }} />
-                  <Row icon={<IcoBolt />} label="What it uses">{sel.uses}</Row>
+                  <Row icon={<IcoBolt />} label="Internet use">{sel.uses}</Row>
                   <div style={{ borderTop: `1.5px dashed ${P.bg}` }} />
-                  <Row icon={<IcoPage />} label="What it opens">{sel.opens.join(", ")}</Row>
+                  <Row icon={<IcoPage />} label="Files it touches">{sel.opens.join(", ")}</Row>
                   <div style={{ borderTop: `1.5px dashed ${P.bg}` }} />
-                  <Row icon={<IcoChat />} label="Who it talks to">{sel.talks.join(", ")}</Row>
+                  <Row icon={<IcoChat />} label="Network connections">{sel.talks.join(", ")}</Row>
                   <div style={{ borderTop: `1.5px dashed ${P.bg}` }} />
                   <Row icon={<IcoSpark />} label={sel.state === "safe" ? "Anything to worry about?" : "What it could do"}>
                     {sel.could || "Nothing unusual. This one's behaving exactly as expected."}</Row>

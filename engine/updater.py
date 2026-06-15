@@ -27,6 +27,27 @@ from .scanners import Engine
 DATA = Path(__file__).resolve().parent.parent / "data"
 FRESHCLAM_CONF = DATA / "clam" / "freshclam.conf"
 
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+
+
+def _hidden_startupinfo():
+    """Hide the console window the freshclam shim would otherwise pop up."""
+    if os.name != "nt":
+        return None
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0  # SW_HIDE
+    return si
+
+
+def _find_freshclam() -> Optional[str]:
+    # Prefer the real exe over a scoop shim (the shim opens its own console window).
+    for cand in (Path.home() / "scoop" / "apps" / "clamav" / "current" / "freshclam.exe",
+                 Path(r"C:\Program Files\ClamAV\freshclam.exe")):
+        if cand.exists():
+            return str(cand)
+    return shutil.which("freshclam")
+
 DEFAULT_INTERVAL = 6 * 3600   # check every 6 hours
 INITIAL_DELAY = 5             # let the server finish coming up first
 
@@ -79,14 +100,15 @@ class AutoUpdater:
         return result
 
     def _run_freshclam(self) -> str:
-        exe = shutil.which("freshclam")
+        exe = _find_freshclam()
         if not exe:
             return "freshclam not installed (skipped)"
         cmd = [exe]
         if FRESHCLAM_CONF.exists():
             cmd.append(f"--config-file={FRESHCLAM_CONF}")
         try:
-            p = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=600,
+                               creationflags=_NO_WINDOW, startupinfo=_hidden_startupinfo())
             return "ok" if p.returncode == 0 else f"exit {p.returncode}"
         except Exception as e:
             return f"error: {e}"

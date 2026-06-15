@@ -94,11 +94,17 @@ function folderStory(p = "") {
   if (low.includes("\\documents\\") || low.includes("/documents/")) return "Lives in your Documents folder";
   if (low.includes("\\pictures\\") || low.includes("/pictures/")) return "Lives in your Pictures folder";
   if (low.includes("\\desktop\\") || low.includes("/desktop/")) return "Sits on your Desktop";
+  if (low.includes("\\windows defender\\")) return "Part of Windows Defender";
   if (low.includes("temp") || low.includes("/tmp/")) return "Lives in a temporary folder";
-  if (low.includes("system32") || low.includes("\\windows\\") || low.includes("program files"))
-    return "Lives in a system folder";
+  if (low.includes("system32") || low.includes("\\windows\\")) return "Lives in a Windows system folder";
+  if (low.includes("\\program files")) return "Installed under Program Files";
+  if (low.includes("\\programdata\\")) return "Lives in a shared app-data folder";
+  // Otherwise name the nearest meaningful folder, skipping version-number dirs
+  // (e.g. "...\\Platform\\4.18.26050.15-0\\x.exe" -> "Platform", not the version).
   const parts = p.replace(/\//g, "\\").split("\\").filter(Boolean);
-  if (parts.length >= 2) return `Lives in ${parts[parts.length - 2]}`;
+  parts.pop(); // drop the filename
+  while (parts.length && /^[\d._-]+$/.test(parts[parts.length - 1])) parts.pop();
+  if (parts.length) return `Lives in the ${parts[parts.length - 1]} folder`;
   return "Location not known yet";
 }
 
@@ -124,7 +130,10 @@ export function mapObject(o) {
     lvl: OP_LVL[l.op] || "info",
     msg: `${l.op || "EVENT"} ${l.path || ""}`.trim(),
   }));
-  const opens = [...new Set(ops.map((x) => baseName(x.path)).filter(Boolean))].slice(0, 6);
+  const self = (o.name || baseName(o.path) || "").toLowerCase();
+  const opens = [...new Set(ops.map((x) => baseName(x.path)).filter(Boolean))]
+    .filter((n) => n.toLowerCase() !== self) // don't list the program as "opening" itself
+    .slice(0, 6);
 
   return {
     id: o.id || String(o.pid ?? o.name),
@@ -134,9 +143,9 @@ export function mapObject(o) {
     pid: o.pid,
     // simple view — derived honestly from real fields
     home: folderStory(o.path),
-    uses: net.length ? "Using the internet" : "Stays offline",
-    opens: opens.length ? opens : ["Nothing observed yet"],
-    talks: net.length ? net.map((n) => `${n.ip}:${n.port}`) : ["Nobody — stays offline"],
+    uses: net.length ? "Connects to the internet" : "Hasn't used the internet",
+    opens: opens.length ? opens : ["Nothing — just runs on its own"],
+    talks: net.length ? net.map((n) => `${n.ip}:${n.port}`) : ["No outside connections"],
     could:
       v.why ||
       (v.severity === "safe"
