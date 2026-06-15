@@ -163,14 +163,25 @@ Run the engine separately (`python -m haven --no-window`) so the dev UI has live
 
 ## Status (honest)
 
-Runnable today: the full engine — ClamAV + YARA + hash-feed scanning, the behavioral
-rule engine, update-health tracking, and the local API/WebSocket the dashboard consumes —
-**plus the Haven dashboard wired to that live API** (objects, update-health, and live
-verdicts over the WebSocket), packaged as a single-process desktop app (`python -m haven`).
+**Built and verified — runs today:**
+- **Detection** — ClamAV (`clamd`) + ~1,100 abuse.ch hashes + **~5,900 YARA rules**
+  (community `signature-base` + your own custom rules) + behavioral (ransomware / temp /
+  office-spawned-shell) + network command-and-control.
+- **Real-time** — a user-mode file monitor *and* a live process inventory (every running app,
+  threats flagged; quarantine kills the process); auto-updating threat intel.
+- **Dashboard** — wired to the live engine: Simple/Technical views, update-health,
+  allow / quarantine / un-allow, a whitelist panel, and **write-your-own YARA rules**.
+- **Packaging** — single-process native window (pywebview + WebView2), `install.ps1` setup,
+  autostart listener, and a standalone `Haven.exe`.
 
-Still native work on your side: building & signing the Windows minifilter (`avfilter.c`)
-so real-time events flow in, and packaging Haven + engine as one desktop app (Tauri).
-Until the driver is wired, you can drive the engine with `/scan` and `/events` manually.
+**Kernel layer — build it in a VM:** the minifilter for true *pre-execution blocking* is
+code-complete (`driver/`), with a full build/sign/install runbook in
+[`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md). It needs a **Windows VM + the WDK** to
+compile and test-sign — it deliberately does not build on a normal dev box.
+
+**Not yet (for a *shipped* product):** code-signing (so users don't hit SmartScreen warnings)
+and an always-on SYSTEM service. Until those land, treat Haven as a transparent, hackable
+**open-source project** — not a drop-in replacement for your primary antivirus.
 
 ## Threat-intel feeds & attribution
 
