@@ -777,11 +777,8 @@ function TitleBar({ onSettings }) {
     <div style={{ flex: "0 0 auto", height: 44, display: "flex", alignItems: "stretch",
       background: P.surface, borderBottom: `1px solid ${P.bg}`, userSelect: "none" }}>
       <div className="pywebview-drag-region" style={{ flex: 1, display: "flex", alignItems: "center",
-        gap: 9, padding: "0 14px", minWidth: 0 }}>
-        <Logo size={22} />
-        <span style={{ fontWeight: 800, fontSize: 14, letterSpacing: -0.2 }}>Eyil Guard</span>
-        <span style={{ fontSize: 11.5, color: P.soft, whiteSpace: "nowrap", overflow: "hidden",
-          textOverflow: "ellipsis" }}>· watching quietly</span>
+        gap: 9, padding: "0 12px", minWidth: 0 }}>
+        <Logo size={20} />
       </div>
       <button className="winbtn" onClick={onSettings} title="Settings"
         style={{ ...btn, fontSize: 16 }}>⚙</button>
@@ -855,6 +852,8 @@ export default function App() {
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         {/* hero */}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ fontSize: 13, letterSpacing: 4, color: P.soft, fontWeight: 800,
+            textTransform: "uppercase", marginBottom: 8 }}>Eyil&nbsp;Guard</div>
           <div className="float" style={{ display: "inline-block" }}>
             <Guardian mood={anyRisk ? "alert" : "calm"} />
           </div>
