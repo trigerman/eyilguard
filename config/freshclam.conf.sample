@@ -1,0 +1,8 @@
+# Sample freshclam.conf — ClamAV's automatic signature updater.
+# freshclam keeps the virus database current on its own; leave it running.
+
+DatabaseMirror database.clamav.net
+# How many times per day to check for new signatures (24 = hourly):
+Checks 24
+DatabaseDirectory /var/lib/clamav     # Windows: C:\ProgramData\ClamAV\database
+NotifyClamd /etc/clamav/clamd.conf    # tell clamd to reload after each update

@@ -1,0 +1,26 @@
+# Secrets — NEVER commit API keys (BYOK)
+data/abuse_ch_key.txt
+data/keys.json
+
+# Fetched YARA rules (e.g. Malpedia TLP:GREEN/AMBER) stay on this machine only
+data/yara/
+
+# Runtime threat-intel state (re-fetched automatically; not ours to redistribute)
+data/hashes.txt
+data/allowlist.json
+data/clam/db/
+data/quarantine/
+data/threatfox_ips.txt
+data/c2_ips.txt
+data/feed_state.json
+data/clam/*.log
+
+# Build / deps
+dashboard/node_modules/
+dashboard/dist/
+__pycache__/
+*.pyc
+
+# PyInstaller output
+/build/
+/dist/

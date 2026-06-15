@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avfilter", "avfilter.vcxproj", "{7B54C8B4-641C-4F64-9A7F-62B22EEBDA01}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scanner_service", "scanner_service.vcxproj", "{AF4FB7A6-4C98-4040-B84D-55E5901963B3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B54C8B4-641C-4F64-9A7F-62B22EEBDA01}.Debug|x64.ActiveCfg = Debug|x64
+		{7B54C8B4-641C-4F64-9A7F-62B22EEBDA01}.Debug|x64.Build.0 = Debug|x64
+		{7B54C8B4-641C-4F64-9A7F-62B22EEBDA01}.Release|x64.ActiveCfg = Release|x64
+		{7B54C8B4-641C-4F64-9A7F-62B22EEBDA01}.Release|x64.Build.0 = Release|x64
+		{AF4FB7A6-4C98-4040-B84D-55E5901963B3}.Debug|x64.ActiveCfg = Debug|x64
+		{AF4FB7A6-4C98-4040-B84D-55E5901963B3}.Debug|x64.Build.0 = Debug|x64
+		{AF4FB7A6-4C98-4040-B84D-55E5901963B3}.Release|x64.ActiveCfg = Release|x64
+		{AF4FB7A6-4C98-4040-B84D-55E5901963B3}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

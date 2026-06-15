@@ -1,0 +1,12 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+clamd>=1.0.2
+requests>=2.31
+pydantic>=2.6
+pywebview>=5.1        # native desktop window for the packaged product
+watchdog>=4.0         # user-mode real-time file monitor (engine/realtime.py)
+psutil>=5.9           # single-instance: take over the port so relaunch loads fresh code
+yara-x>=1.0           # YARA pattern matching (Rust engine; ships wheels for modern Python)
+
+# yara-python (the classic C engine) is supported as a fallback if installed,
+# but yara-x above is preferred and works where yara-python has no wheel.

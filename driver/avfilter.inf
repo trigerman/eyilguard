@@ -1,0 +1,62 @@
+;;;
+;;; avfilter.inf — VM/test install information for the Haven Shield minifilter.
+;;;
+;;; This is demand-start and test-altitude only. For distribution, request a
+;;; Microsoft-assigned altitude and submit a signed package.
+;;;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = "AntiVirus"
+ClassGuid   = {b1d1a169-c54f-4379-81db-bee7d88d7454}
+Provider    = %ProviderName%
+DriverVer   = 06/15/2026,0.1.0.0
+CatalogFile = avfilter.cat
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir       = 13
+AvFilter.DriverFiles = 13
+
+[DefaultInstall.NTamd64]
+OptionDesc = %ServiceDescription%
+CopyFiles  = AvFilter.DriverFiles
+
+[DefaultInstall.NTamd64.Services]
+AddService = %ServiceName%,,AvFilter.Service
+
+[AvFilter.Service]
+DisplayName    = %ServiceName%
+Description    = %ServiceDescription%
+ServiceBinary  = %13%\%DriverName%.sys
+Dependencies   = "FltMgr"
+ServiceType    = 2
+StartType      = 3
+ErrorControl   = 1
+LoadOrderGroup = "FSFilter Anti-Virus"
+AddReg         = AvFilter.AddRegistry
+
+[AvFilter.AddRegistry]
+HKR,"Parameters","SupportedFeatures",0x00010001,0x3
+HKR,"Parameters\Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Parameters\Instances\%Instance1.Name%","Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Parameters\Instances\%Instance1.Name%","Flags",0x00010001,0x0
+
+[AvFilter.DriverFiles]
+%DriverName%.sys
+
+[SourceDisksFiles]
+avfilter.sys = 1
+
+[SourceDisksNames]
+1 = %DiskName%,,,
+
+[Strings]
+ProviderName       = "Haven Shield"
+ServiceName        = "AvFilter"
+ServiceDescription = "Haven Shield test on-access AV minifilter"
+DriverName         = "avfilter"
+DefaultInstance    = "AvFilter Instance"
+Instance1.Name     = "AvFilter Instance"
+Instance1.Altitude = "321410"
+DiskName           = "Haven Shield Driver Disk"
