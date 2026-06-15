@@ -1,6 +1,6 @@
-# Haven Shield - PyInstaller spec.  Build:  python build_exe.py   (or)  pyinstaller haven.spec --noconfirm --clean
+# Eyil Shield - PyInstaller spec.  Build:  python build_exe.py   (or)  pyinstaller eyil.spec --noconfirm --clean
 #
-# Produces dist/Haven/Haven.exe — a windowed launcher that starts the engine,
+# Produces dist/Eyil/Eyil.exe — a windowed launcher that starts the engine,
 # serves the bundled dashboard, and opens the native window. ClamAV (clamd) is
 # NOT bundled (217 MB); the launcher starts a locally-installed clamd if present.
 
@@ -23,7 +23,7 @@ datas = [
 ]
 
 a = Analysis(
-    ["haven/__main__.py"],
+    ["eyil/__main__.py"],
     pathex=["."],
     binaries=[],
     datas=datas,
@@ -37,9 +37,9 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, [],
     exclude_binaries=True,
-    name="Haven",
+    name="Eyil",
     console=False,            # windowed app (no console); launcher redirects stdio to a log
 
     disable_windowed_traceback=False,
 )
-coll = COLLECT(exe, a.binaries, a.datas, name="Haven")
+coll = COLLECT(exe, a.binaries, a.datas, name="Eyil")

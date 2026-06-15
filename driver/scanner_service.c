@@ -17,7 +17,7 @@
  *   cl scanner_service.c /link fltlib.lib bcrypt.lib
  *
  * Run elevated (the filter port is admin-only by default). Point it at the
- * blocklist with the HAVEN_HASHES env var, or it falls back to ..\data\hashes.txt.
+ * blocklist with the EYIL_HASHES env var, or it falls back to ..\data\hashes.txt.
  */
 
 #include <windows.h>
@@ -30,7 +30,7 @@
 #include <ctype.h>
 
 #define HASH_HEX_LEN 64
-#define SERVICE_NAME L"HavenShieldScan"
+#define SERVICE_NAME L"EyilShieldScan"
 
 #include "avscan_protocol.h"
 
@@ -73,7 +73,7 @@ static int is_hex64(const char *s)
     return 1;
 }
 
-/* Load data/hashes.txt (or %HAVEN_HASHES%) into the sorted blocklist. */
+/* Load data/hashes.txt (or %EYIL_HASHES%) into the sorted blocklist. */
 static void LoadBlocklist(void)
 {
     char path[MAX_PATH];
@@ -82,7 +82,7 @@ static void LoadBlocklist(void)
         if (wcstombs_s(&converted, path, sizeof(path), g_hash_path, _TRUNCATE) != 0)
             strcpy_s(path, sizeof(path), "..\\data\\hashes.txt");
     } else {
-        DWORD n = GetEnvironmentVariableA("HAVEN_HASHES", path, sizeof(path));
+        DWORD n = GetEnvironmentVariableA("EYIL_HASHES", path, sizeof(path));
         if (n == 0 || n >= sizeof(path))
             strcpy_s(path, sizeof(path), "..\\data\\hashes.txt");
     }

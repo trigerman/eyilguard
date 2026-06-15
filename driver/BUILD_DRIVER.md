@@ -1,7 +1,7 @@
-# Haven Shield — Kernel Minifilter: what it is & how to build/run it on a VM
+# Eyil Shield — Kernel Minifilter: what it is & how to build/run it on a VM
 
 This is the **real-time, pre-execution-blocking** layer — the one piece that turns
-Haven from "detect and react" into "stop it before it runs." It is **VM-only** work:
+Eyil from "detect and react" into "stop it before it runs." It is **VM-only** work:
 it needs the Windows Driver Kit, administrator rights, and test-signing, none of
 which exist on a normal dev box.
 
@@ -14,7 +14,7 @@ I/O stack. Because **every file open passes through it**, it can intercept an op
 *before it completes*, ask "is this safe?", and **cancel the open** if not — so a
 malicious program never gets to read/execute. That's **pre-execution blocking**.
 
-Haven splits the work the right way:
+Eyil splits the work the right way:
 
 ```
   Program tries to open/run a file
@@ -66,8 +66,8 @@ that process.
    bcdedit /set testsigning on
    ```
    You'll see a "Test Mode" watermark on the desktop afterward — expected.
-4. **Turn Windows Defender OFF in the VM** so *Haven* is the active AV. On a normal
-   machine Defender gets to malware first (it blocks/deletes test files before Haven
+4. **Turn Windows Defender OFF in the VM** so *Eyil* is the active AV. On a normal
+   machine Defender gets to malware first (it blocks/deletes test files before Eyil
    can act — which is why detection is hard to demo with Defender on). In the throwaway
    VM, disable real-time protection (Settings → Privacy & Security → Windows Security →
    Virus & threat protection → Manage settings → Real-time protection **Off**), or run:
@@ -75,7 +75,7 @@ that process.
    Set-MpPreference -DisableRealtimeMonitoring $true      # test VM only
    ```
    Alternatively keep Defender on but exclude your test folder:
-   `Add-MpPreference -ExclusionPath "C:\haven-test"`. With Defender out of the way, Haven
+   `Add-MpPreference -ExclusionPath "C:\eyil-test"`. With Defender out of the way, Eyil
    detects, **blocks (kernel)**, and quarantines the files itself — the real demo.
 
 ---
@@ -106,12 +106,12 @@ powershell -ExecutionPolicy Bypass -File install_driver.ps1
 ```
 This creates a self-signed test cert, trusts it machine-wide, builds + signs the
 `.cat`, signs the `.sys`, installs the INF (`pnputil`), loads the filter
-(`fltmc load avfilter`), and creates + starts the `HavenShieldScan` service.
+(`fltmc load avfilter`), and creates + starts the `EyilShieldScan` service.
 
 **Verify it loaded:**
 ```powershell
 fltmc filters          # 'avfilter' should appear with altitude 321410
-sc query HavenShieldScan
+sc query EyilShieldScan
 ```
 
 ## 6. Test it (safely, with EICAR)
@@ -128,7 +128,7 @@ type eicar_test.com      # opening it should fail: "Operation did not complete s
 The scanner console/service log shows `... -> INFECTED (blocking)`. To block real
 known-bad files, point the service at the engine's live feed:
 ```powershell
-sc.exe stop HavenShieldScan
+sc.exe stop EyilShieldScan
 # run interactively against the auto-updated blocklist:
 .\scanner_service.exe --hashes ..\data\hashes.txt
 ```
@@ -142,10 +142,10 @@ powershell -ExecutionPolicy Bypass -File uninstall_driver.ps1
 
 ## 8. Running the WHOLE product on the VM
 
-The driver is the bottom layer; run it under the rest of Haven:
+The driver is the bottom layer; run it under the rest of Eyil:
 
 1. **Engine + dashboard:** in the project root, run the normal setup —
-   `powershell -ExecutionPolicy Bypass -File install.ps1` — then `python -m haven`.
+   `powershell -ExecutionPolicy Bypass -File install.ps1` — then `python -m eyil`.
    This gives you ClamAV + hashes + YARA + behavior + network + the user-mode
    process/file scanners + the dashboard (everything already verified).
 2. **Driver:** build + `install_driver.ps1` (this folder). Now file opens are

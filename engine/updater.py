@@ -100,7 +100,7 @@ class AutoUpdater:
             self._stop.wait(self.interval)
 
     def start(self) -> bool:
-        if os.environ.get("HAVEN_AUTOUPDATE", "1") == "0":
+        if os.environ.get("EYIL_AUTOUPDATE", "1") == "0":
             return False
         self._thread = threading.Thread(target=self._loop, daemon=True)
         self._thread.start()

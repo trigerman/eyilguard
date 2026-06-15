@@ -1,4 +1,4 @@
-# Haven Shield
+# Eyil Shield
 
 An **open-source (GPLv3) endpoint protection tool for Windows** that's honest about
 what it does. Its difference isn't out-detecting commercial antivirus — it's
@@ -22,7 +22,7 @@ A red shield flashes, says *"threat blocked — trust me,"* and tells you nothin
 the file? What was it doing? Where did it live, what did it touch, who did it talk to?
 You're not allowed to know.
 
-**Haven Shield is the AV I always wanted** — one where I can see exactly what every file is
+**Eyil Shield is the AV I always wanted** — one where I can see exactly what every file is
 doing, in plain language, one toggle away from the full forensic truth (paths, hashes, IPs,
 the event log). Nothing hidden, nothing dumbed-down-and-then-lost. The same file makes sense
 to a curious beginner and to a malware analyst.
@@ -48,7 +48,7 @@ It's GPLv3, it's a work in progress, and I'm building it in the open.
 | Real-time on-access blocking (Windows) | **minifilter driver** (`avfilter.c`) | **ours** |
 | Engine orchestration + verdicts + API | this repo (`engine/`) | **ours** |
 | Behavioral correlation (ransomware etc.) | `engine/behavior.py` (+ Sigma rules) | **ours** |
-| Dual-mode dashboard | **Haven** (`haven_dashboard.jsx`) | **ours** |
+| Dual-mode dashboard | **Eyil** (`eyil_dashboard.jsx`) | **ours** |
 
 > NOTE on VirusTotal: the VT *free public API may not be used in antivirus products* —
 > its terms forbid it. So VT is never a runtime dependency here. Users can still check a
@@ -63,7 +63,7 @@ It's GPLv3, it's a work in progress, and I'm building it in the open.
              \                      /
             ( events, tagged with PID )
                       |
-              engine/service.py  ──────────────►  Haven dashboard
+              engine/service.py  ──────────────►  Eyil dashboard
               (FastAPI + WebSocket)  local API     (Simple / Technical)
                 /     |       \
         scanners.py behavior.py feeds.py
@@ -74,7 +74,7 @@ It's GPLv3, it's a work in progress, and I'm building it in the open.
 ## Folder layout
 
 ```
-haven-shield/
+eyil/
 ├── README.md
 ├── requirements.txt
 ├── engine/                  # the Python engine (runnable today)
@@ -88,7 +88,7 @@ haven-shield/
 │   ├── avfilter.inf         #   driver install (anti-virus altitude)
 │   └── scanner_service.c    #   user-mode bridge between driver and engine
 ├── dashboard/
-│   ├── haven_dashboard.jsx  #   the chosen UI (Simple / Technical views)
+│   ├── eyil_dashboard.jsx  #   the chosen UI (Simple / Technical views)
 │   └── explorations/        #   earlier design directions, kept for reference
 ├── tools/
 │   └── mini_av.py           #   standalone signature scanner (the prototype)
@@ -110,7 +110,7 @@ haven-shield/
 
 ## Install & run
 
-Haven is a **single-process desktop app**: the engine serves both the local API and the
+Eyil is a **single-process desktop app**: the engine serves both the local API and the
 built dashboard, and a native window (`pywebview` + the Windows WebView2 runtime) opens
 onto it — no browser, no separate server.
 
@@ -125,18 +125,18 @@ installs/uses ClamAV, pulls the first signatures + threat feeds, registers the a
 **background listener** (autostart at logon, hidden), and drops a **desktop shortcut**.
 Remove it all with `uninstall.ps1`.
 
-- `python -m haven` — open the window (foreground).
-- `python -m haven --no-window` — run as the headless background listener.
+- `python -m eyil` — open the window (foreground).
+- `python -m eyil --no-window` — run as the headless background listener.
 The launcher **starts `clamd` itself** if it isn't already running.
 
-### Package a standalone `Haven.exe`
+### Package a standalone `Eyil.exe`
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File build_exe.ps1   # → dist\Haven\Haven.exe
+powershell -ExecutionPolicy Bypass -File build_exe.ps1   # → dist\Eyil\Eyil.exe
 ```
 A windowed bundle with the dashboard inside. ClamAV (clamd) is installed separately, not
 bundled. (Note: the frozen app currently keeps its `data/` inside the bundle folder;
-moving runtime state to `%LOCALAPPDATA%\HavenShield` is a planned refinement.)
+moving runtime state to `%LOCALAPPDATA%\EyilShield` is a planned refinement.)
 
 **Live vs. demo data (honest by default):** the dashboard talks to the engine on its own
 origin. If the engine is unreachable it falls back to clearly-labelled **demo data** (a
@@ -149,7 +149,7 @@ yellow "Demo data" banner) rather than presenting mock files as real detections.
 cd dashboard
 npm run dev        # Vite dev server on :5173, proxies API + WebSocket to the engine
 ```
-Run the engine separately (`python -m haven --no-window`) so the dev UI has live data.
+Run the engine separately (`python -m eyil --no-window`) so the dev UI has live data.
 
 ## API surface
 
@@ -172,7 +172,7 @@ Run the engine separately (`python -m haven --no-window`) so the dev UI has live
 - **Dashboard** — wired to the live engine: Simple/Technical views, update-health,
   allow / quarantine / un-allow, a whitelist panel, and **write-your-own YARA rules**.
 - **Packaging** — single-process native window (pywebview + WebView2), `install.ps1` setup,
-  autostart listener, and a standalone `Haven.exe`.
+  autostart listener, and a standalone `Eyil.exe`.
 
 **Kernel layer — build it in a VM:** the minifilter for true *pre-execution blocking* is
 code-complete (`driver/`), with a full build/sign/install runbook in
@@ -180,12 +180,12 @@ code-complete (`driver/`), with a full build/sign/install runbook in
 compile and test-sign — it deliberately does not build on a normal dev box.
 
 **Not yet (for a *shipped* product):** code-signing (so users don't hit SmartScreen warnings)
-and an always-on SYSTEM service. Until those land, treat Haven as a transparent, hackable
+and an always-on SYSTEM service. Until those land, treat Eyil as a transparent, hackable
 **open-source project** — not a drop-in replacement for your primary antivirus.
 
 ## Threat-intel feeds & attribution
 
-Haven composes free, keyless **bulk exports** from [abuse.ch](https://abuse.ch) (now part
+Eyil composes free, keyless **bulk exports** from [abuse.ch](https://abuse.ch) (now part
 of Spamhaus): **MalwareBazaar** SHA-256 hashes (`data/hashes.txt`) and **Feodo Tracker**
 botnet C2 IPs (`data/c2_ips.txt`). These are free under abuse.ch's *fair-use* terms for
 open-source/non-commercial use (attribution expected; commercial use may need a paid

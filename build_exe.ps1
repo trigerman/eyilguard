@@ -1,4 +1,4 @@
-# Build Haven.exe with PyInstaller.
+# Build Eyil.exe with PyInstaller.
 #   powershell -ExecutionPolicy Bypass -File build_exe.ps1
 $ErrorActionPreference = "Stop"
 $Root = $PSScriptRoot
@@ -17,10 +17,10 @@ try {
   }
 
   Write-Host "Running PyInstaller..." -ForegroundColor Yellow
-  & $python -m PyInstaller haven.spec --noconfirm --clean
+  & $python -m PyInstaller eyil.spec --noconfirm --clean
 
-  if (Test-Path "dist\Haven\Haven.exe") {
-    Write-Host "`nOK - built: dist\Haven\Haven.exe" -ForegroundColor Green
-    Write-Host "Zip the dist\Haven folder to distribute. (clamd is installed separately.)" -ForegroundColor DarkGray
-  } else { Write-Warning "Build finished but dist\Haven\Haven.exe was not found - check the PyInstaller output." }
+  if (Test-Path "dist\Eyil\Eyil.exe") {
+    Write-Host "`nOK - built: dist\Eyil\Eyil.exe" -ForegroundColor Green
+    Write-Host "Zip the dist\Eyil folder to distribute. (clamd is installed separately.)" -ForegroundColor DarkGray
+  } else { Write-Warning "Build finished but dist\Eyil\Eyil.exe was not found - check the PyInstaller output." }
 } finally { Pop-Location }

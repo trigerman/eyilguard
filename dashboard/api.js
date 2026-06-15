@@ -1,4 +1,4 @@
-/* Haven dashboard <-> engine adapter.
+/* Eyil dashboard <-> engine adapter.
  *
  * Maps the engine's live shapes (MonitoredObject / Health from engine/models.py)
  * into what the UI renders, and exposes useEngine() — a hook that loads
@@ -181,7 +181,7 @@ export async function saveKey(service, key) {
   return r.json();
 }
 
-/** List identities the user allowed and Haven is hiding from the dashboard. */
+/** List identities the user allowed and Eyil is hiding from the dashboard. */
 export async function getAllowlist() {
   const r = await fetch(`${httpBase}/allowlist`);
   if (!r.ok) throw new Error(`/allowlist ${r.status}`);

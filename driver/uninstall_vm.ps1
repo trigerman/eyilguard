@@ -7,9 +7,9 @@ $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIde
 if (-not $isAdmin) { throw "Run this inside the VM as Administrator." }
 
 Write-Host "Stopping scanner bridge service..." -ForegroundColor Yellow
-sc.exe stop HavenShieldScan | Out-Null
+sc.exe stop EyilShieldScan | Out-Null
 Start-Sleep -Seconds 1
-sc.exe delete HavenShieldScan | Out-Null
+sc.exe delete EyilShieldScan | Out-Null
 
 Write-Host "Unloading minifilter..." -ForegroundColor Yellow
 fltmc unload AvFilter

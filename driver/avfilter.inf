@@ -1,5 +1,5 @@
 ;;;
-;;; avfilter.inf — VM/test install information for the Haven Shield minifilter.
+;;; avfilter.inf — VM/test install information for the Eyil Shield minifilter.
 ;;;
 ;;; This is demand-start and test-altitude only. For distribution, request a
 ;;; Microsoft-assigned altitude and submit a signed package.
@@ -52,11 +52,11 @@ avfilter.sys = 1
 1 = %DiskName%,,,
 
 [Strings]
-ProviderName       = "Haven Shield"
+ProviderName       = "Eyil Shield"
 ServiceName        = "AvFilter"
-ServiceDescription = "Haven Shield test on-access AV minifilter"
+ServiceDescription = "Eyil Shield test on-access AV minifilter"
 DriverName         = "avfilter"
 DefaultInstance    = "AvFilter Instance"
 Instance1.Name     = "AvFilter Instance"
 Instance1.Altitude = "321410"
-DiskName           = "Haven Shield Driver Disk"
+DiskName           = "Eyil Shield Driver Disk"

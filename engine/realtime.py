@@ -39,7 +39,7 @@ except ImportError:                       # degrade gracefully, like the scanner
     _HAVE_WATCHDOG = False
     FileSystemEventHandler = object       # type: ignore
 
-# Folders most worth watching by default; overridable with HAVEN_WATCH_DIRS
+# Folders most worth watching by default; overridable with EYIL_WATCH_DIRS
 # (a ';'-separated list of absolute paths).
 DEFAULT_WATCH = ("Downloads", "Documents", "Desktop")
 
@@ -52,7 +52,7 @@ SKIP_FRAGMENTS = ("\\haven-shield\\", "/haven-shield/", "\\data\\clam\\", "/data
 
 
 def default_watch_dirs() -> list[str]:
-    env = os.environ.get("HAVEN_WATCH_DIRS")
+    env = os.environ.get("EYIL_WATCH_DIRS")
     if env:
         return [d for d in (p.strip() for p in env.split(";")) if d and os.path.isdir(d)]
     home = Path.home()

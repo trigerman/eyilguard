@@ -1,4 +1,4 @@
-# Haven Shield - setup / installer (user-level; no administrator rights needed).
+# Eyil Shield - setup / installer (user-level; no administrator rights needed).
 #
 #   powershell -ExecutionPolicy Bypass -File install.ps1
 #
@@ -12,7 +12,7 @@ param([switch]$SkipBuild, [switch]$NoAutostart)
 # we check exit codes explicitly and warn rather than aborting the whole setup.
 $ErrorActionPreference = "Continue"
 $Root = $PSScriptRoot
-Write-Host "Haven Shield setup  -  $Root" -ForegroundColor Cyan
+Write-Host "Eyil Shield setup  -  $Root" -ForegroundColor Cyan
 
 function Need($n) { Get-Command $n -ErrorAction SilentlyContinue }
 
@@ -57,35 +57,35 @@ Pop-Location
 if (-not $NoAutostart) {
   Write-Host "`n[5/6] Installing the background listener (autostart at logon)..." -ForegroundColor Yellow
   $startup = [Environment]::GetFolderPath('Startup')
-  $vbs = Join-Path $startup "HavenShield.vbs"
+  $vbs = Join-Path $startup "EyilShield.vbs"
   @"
-' Haven Shield background listener - starts hidden at logon
+' Eyil Shield background listener - starts hidden at logon
 Set sh = CreateObject("WScript.Shell")
 sh.CurrentDirectory = "$Root"
-sh.Run """$pythonw"" -m haven --no-window", 0, False
+sh.Run """$pythonw"" -m eyil --no-window", 0, False
 "@ | Set-Content -Path $vbs -Encoding ASCII
   Write-Host "  autostart: $vbs"
 
   $desktop = [Environment]::GetFolderPath('Desktop')
-  $lnk = Join-Path $desktop "Haven Shield.lnk"
+  $lnk = Join-Path $desktop "Eyil Shield.lnk"
   $ws = New-Object -ComObject WScript.Shell
   $sc = $ws.CreateShortcut($lnk)
   $sc.TargetPath = $pythonw
-  $sc.Arguments  = "-m haven"
+  $sc.Arguments  = "-m eyil"
   $sc.WorkingDirectory = $Root
-  $sc.Description = "Open Haven Shield"
+  $sc.Description = "Open Eyil Shield"
   $sc.Save()
   Write-Host "  shortcut:  $lnk"
 } else { Write-Host "[5/6] Skipping autostart (--NoAutostart)" }
 
-Write-Host "`n[6/6] Starting Haven now..." -ForegroundColor Yellow
-Start-Process -FilePath $pythonw -ArgumentList "-m","haven","--no-window" -WorkingDirectory $Root -WindowStyle Hidden
+Write-Host "`n[6/6] Starting Eyil now..." -ForegroundColor Yellow
+Start-Process -FilePath $pythonw -ArgumentList "-m","eyil","--no-window" -WorkingDirectory $Root -WindowStyle Hidden
 Start-Sleep -Seconds 4
 try {
   $h = Invoke-RestMethod "http://127.0.0.1:8787/health" -TimeoutSec 4
   $state = if ($h.ok) { "up to date" } else { "updating" }
-  Write-Host "`n  OK - Haven is running.  Protection: $state  |  blocklist $($h.hash_feed_count) hashes  |  C2 $($h.c2_count) IPs" -ForegroundColor Green
+  Write-Host "`n  OK - Eyil is running.  Protection: $state  |  blocklist $($h.hash_feed_count) hashes  |  C2 $($h.c2_count) IPs" -ForegroundColor Green
 } catch { Write-Warning "Listener is starting; give it a few seconds, then open the desktop shortcut." }
 
-Write-Host "`nDone. Double-click 'Haven Shield' on your desktop to open the dashboard." -ForegroundColor Cyan
+Write-Host "`nDone. Double-click 'Eyil Shield' on your desktop to open the dashboard." -ForegroundColor Cyan
 Write-Host "To remove: powershell -ExecutionPolicy Bypass -File uninstall.ps1" -ForegroundColor DarkGray

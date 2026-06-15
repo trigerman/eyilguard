@@ -1,4 +1,4 @@
-# Haven Shield minifilter — test-sign, install, load, and start.
+# Eyil Shield minifilter — test-sign, install, load, and start.
 # Run ELEVATED, inside a TEST VM only. Assumes you already BUILT avfilter.sys
 # (VS + WDK) and scanner_service.exe (cl). See BUILD_DRIVER.md.
 #
@@ -12,7 +12,7 @@ $sys  = Join-Path $Root "avfilter.sys"
 $inf  = Join-Path $Root "avfilter.inf"
 $cat  = Join-Path $Root "avfilter.cat"
 $svc  = Join-Path $Root "scanner_service.exe"
-$CN   = "HavenShieldTest"
+$CN   = "EyilShieldTest"
 
 function Admin { ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator) }
 if (-not (Admin)) { Write-Error "Run this elevated (Administrator)."; exit 1 }
@@ -29,8 +29,8 @@ if (-not $cert) {
   $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=$CN" `
             -CertStoreLocation Cert:\CurrentUser\My -KeyUsage DigitalSignature -HashAlgorithm SHA256
 }
-$pfx = Join-Path $env:TEMP "havenshieldtest.pfx"
-$pw  = ConvertTo-SecureString "haven" -AsPlainText -Force
+$pfx = Join-Path $env:TEMP "eyilshieldtest.pfx"
+$pw  = ConvertTo-SecureString "eyil" -AsPlainText -Force
 Export-PfxCertificate -Cert $cert -FilePath $pfx -Password $pw | Out-Null
 Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\LocalMachine\Root -Password $pw | Out-Null
 Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -Password $pw | Out-Null
@@ -58,10 +58,10 @@ fltmc load avfilter
 # 6. Install + start the user-mode scanner service.
 Write-Host "[6/6] Scanner service..." -ForegroundColor Yellow
 if (Test-Path $svc) {
-  sc.exe create HavenShieldScan binPath= "`"$svc`" --service" start= auto DisplayName= "Haven Shield Scanner" | Out-Null
-  sc.exe start HavenShieldScan | Out-Null
+  sc.exe create EyilShieldScan binPath= "`"$svc`" --service" start= auto DisplayName= "Eyil Shield Scanner" | Out-Null
+  sc.exe start EyilShieldScan | Out-Null
 } else {
-  Write-Warning "scanner_service.exe not built — build it, then run elevated: scanner_service.exe (or as the HavenShieldScan service)."
+  Write-Warning "scanner_service.exe not built — build it, then run elevated: scanner_service.exe (or as the EyilShieldScan service)."
 }
 
 Write-Host "`nDone. Verify:" -ForegroundColor Green

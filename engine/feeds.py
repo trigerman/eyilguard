@@ -283,7 +283,7 @@ def signatures_age(clam_version: str = "unknown") -> float | None:
     Checks (in order) an explicit override, the engine's own bundled clamd DB,
     then the usual system locations — and returns the *freshest* it finds."""
     candidates: list[Path] = []
-    env = os.environ.get("HAVEN_CLAM_DB_DIR")
+    env = os.environ.get("EYIL_CLAM_DB_DIR")
     if env:
         candidates += [Path(env) / "daily.cvd", Path(env) / "daily.cld"]
     local = DATA / "clam" / "db"     # see data/clam/clamd.conf

@@ -4,7 +4,7 @@ User-supplied API keys live in data/keys.json on the user's own machine and are
 NEVER bundled or committed (see .gitignore). The API only ever exposes a *masked*
 status (e.g. "8cce…3981") — never the secret itself.
 
-This is what makes restricted feeds license-clean: Haven ships only code; the
+This is what makes restricted feeds license-clean: Eyil ships only code; the
 user brings their own credentials, and the data those keys fetch stays local.
 An environment variable (e.g. ABUSE_CH_KEY) overrides the stored value.
 """
@@ -19,7 +19,7 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 KEYS_FILE = DATA / "keys.json"
 LEGACY_ABUSE = DATA / "abuse_ch_key.txt"
 
-# Services Haven can hold a key for. VirusTotal is intentionally NOT here — its
+# Services Eyil can hold a key for. VirusTotal is intentionally NOT here — its
 # terms forbid API use in an antivirus product even with your own key, so it's
 # offered only as a manual "look up on virustotal.com" link, never a key field.
 SERVICES = ("abuse_ch", "malpedia")

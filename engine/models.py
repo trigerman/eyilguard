@@ -1,4 +1,4 @@
-"""Shared data models. These shapes match what the Haven dashboard expects, so
+"""Shared data models. These shapes match what the Eyil dashboard expects, so
 the UI consumes engine output without transformation."""
 
 from __future__ import annotations

@@ -22,7 +22,7 @@ const USE_API =
     import.meta.env &&
     import.meta.env.VITE_USE_API === "false");
 
-/* Haven — a calm, illustrated take on file safety, with a Technical view.
+/* Eyil — a calm, illustrated take on file safety, with a Technical view.
  * Custom hand-drawn SVG (no icon library), soft cool palette, a guardian
  * character that reacts. Toggle between a plain-language story and the raw
  * forensic detail (paths, PIDs, hashes, IPs, event log). */
@@ -101,7 +101,7 @@ const MOCK_FILES = [
     uses: "Some power, quietly using the internet",
     opens: ["A few system settings"],
     talks: ["Task scheduler", "A network service"],
-    could: "It's unsigned and poking at system settings. Probably fine, but Haven is keeping an eye on it.",
+    could: "It's unsigned and poking at system settings. Probably fine, but Eyil is keeping an eye on it.",
     tech: {
       path: "C:\\Users\\you\\AppData\\Local\\Temp\\setup_helper.tmp",
       kind: "Executable", pid: "4502", parent: "explorer.exe (3310)",
@@ -133,7 +133,7 @@ const MOCK_FILES = [
     uses: "A lot of power, busy on the internet",
     opens: ["Your documents", "Your photos (312 of them)"],
     talks: ["Backup service", "An unknown server"],
-    could: "It pretends to be a PDF, but it was locking up your files and erasing backups. Haven shut it down before it got far.",
+    could: "It pretends to be a PDF, but it was locking up your files and erasing backups. Eyil shut it down before it got far.",
     tech: {
       path: "C:\\Users\\you\\Downloads\\invoice_2026.pdf.exe",
       kind: "Executable", pid: "6691", parent: "explorer.exe (3310)",
@@ -551,7 +551,7 @@ function CustomRules() {
     <div style={{ padding: "14px 0", borderTop: `1.5px dashed ${P.bg}` }}>
       <div style={{ fontSize: 15, fontWeight: 700 }}>Your YARA rules</div>
       <div style={{ fontSize: 12.5, color: P.soft, margin: "4px 0 10px" }}>
-        Write your own detection rule — Haven compiles it straight into the engine. This is
+        Write your own detection rule — Eyil compiles it straight into the engine. This is
         your AV; teach it what to look for.</div>
       <textarea value={src} onChange={(e) => setSrc(e.target.value)} spellCheck={false}
         style={{ width: "100%", height: 150, boxSizing: "border-box", ...mono, fontSize: 12,
@@ -695,7 +695,7 @@ export default function App() {
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         {/* hero */}
         <div style={{ textAlign: "center", marginBottom: 26 }}>
-          <div style={{ fontSize: 13, letterSpacing: 3, color: P.soft, marginBottom: 10 }}>H A V E N</div>
+          <div style={{ fontSize: 13, letterSpacing: 3, color: P.soft, marginBottom: 10 }}>E Y I L</div>
           <div className="float" style={{ display: "inline-block" }}>
             <Guardian mood={anyRisk ? "alert" : "calm"} />
           </div>
@@ -711,7 +711,7 @@ export default function App() {
         {files.length === 0 ? (
           <div style={{ textAlign: "center", color: P.soft, fontSize: 14.5, background: P.surface,
             borderRadius: 24, padding: "40px 24px", marginBottom: 18, boxShadow: "0 4px 14px #2E2A4F0F" }}>
-            Nothing has happened yet. Haven is watching — files appear here as they’re opened or scanned.
+            Nothing has happened yet. Eyil is watching — files appear here as they’re opened or scanned.
           </div>
         ) : (
           <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, marginBottom: 18 }}>
@@ -795,7 +795,7 @@ export default function App() {
               ) : sel.status === "allowed" ? (
                 <div style={{ display: "flex", gap: 12, marginTop: 22, alignItems: "center", flexWrap: "wrap" }}>
                   <span style={{ fontSize: 13.5, color: P.soft, flexBasis: "100%" }}>
-                    You're allowing this. Haven keeps watching it and will re-alert if it does something harmful.</span>
+                    You're allowing this. Eyil keeps watching it and will re-alert if it does something harmful.</span>
                   {sel.state !== "safe" && (
                     <button className="pressable" disabled={!canAct || busy} onClick={() => onAction("quarantine")}
                       style={{ font: "inherit", fontWeight: 700, fontSize: 15, color: P.surface,

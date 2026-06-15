@@ -1,13 +1,13 @@
-"""Launch Haven Shield as a desktop product.
+"""Launch Eyil Shield as a desktop product.
 
 Self-sufficient launcher: it makes sure the ClamAV daemon (clamd) is running,
 boots the FastAPI engine (engine.service:app) on 127.0.0.1 in a background
 thread, waits until it answers, then either opens the native window (pywebview)
 or stays running headless as the always-on background listener.
 
-    python -m haven                 # open the Haven window (foreground app)
-    python -m haven --no-window     # run as the background listener (autostart)
-    python -m haven --background    # alias for --no-window
+    python -m eyil                 # open the Eyil window (foreground app)
+    python -m eyil --no-window     # run as the background listener (autostart)
+    python -m eyil --background    # alias for --no-window
 """
 
 from __future__ import annotations
@@ -42,9 +42,9 @@ def _ensure_streams() -> None:
         return
     base = os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()
     try:
-        log_dir = Path(base) / "HavenShield"
+        log_dir = Path(base) / "EyilShield"
         log_dir.mkdir(parents=True, exist_ok=True)
-        f = open(log_dir / "haven.log", "a", buffering=1, encoding="utf-8")
+        f = open(log_dir / "eyil.log", "a", buffering=1, encoding="utf-8")
     except Exception:
         f = open(os.devnull, "w")
     if sys.stdout is None:
@@ -97,7 +97,7 @@ def _ensure_clamd() -> str:
 
 
 def _kill_stale_engine() -> None:
-    """Single-instance: if an older Haven engine already holds our port, stop it
+    """Single-instance: if an older Eyil engine already holds our port, stop it
     so this launch loads the *current* code instead of leaving a stale engine
     serving the old API to a fresh window."""
     try:
@@ -135,7 +135,7 @@ def _wait_until_up(timeout: float = 20.0) -> bool:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(prog="haven", description="Haven Shield desktop app")
+    ap = argparse.ArgumentParser(prog="eyil", description="Eyil Shield desktop app")
     ap.add_argument("--no-window", "--background", dest="no_window", action="store_true",
                     help="run as the headless background listener (no native window)")
     args = ap.parse_args()
@@ -149,13 +149,13 @@ def main() -> int:
 
     ui_built = (UI_DIST / "index.html").exists()
     if not ui_built and not args.no_window:
-        print("The Haven UI hasn't been built yet. Run the setup first:\n"
+        print("The Eyil UI hasn't been built yet. Run the setup first:\n"
               "    powershell -ExecutionPolicy Bypass -File install.ps1\n"
               "or build it manually:  cd dashboard && npm install && npm run build",
               file=sys.stderr)
         return 2
 
-    print(f"[haven] {_ensure_clamd()}")
+    print(f"[eyil] {_ensure_clamd()}")
 
     threading.Thread(target=_serve, daemon=True).start()
     if not _wait_until_up():
@@ -163,7 +163,7 @@ def main() -> int:
         return 1
 
     if args.no_window:
-        print(f"[haven] listener running at {URL}  (real-time protection on)")
+        print(f"[eyil] listener running at {URL}  (real-time protection on)")
         try:
             while True:
                 time.sleep(3600)
@@ -182,7 +182,7 @@ def main() -> int:
         except KeyboardInterrupt:
             return 0
 
-    webview.create_window("Haven Shield", URL, width=860, height=900, min_size=(680, 600))
+    webview.create_window("Eyil Shield", URL, width=860, height=900, min_size=(680, 600))
     webview.start()
     return 0
 

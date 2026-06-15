@@ -1,7 +1,7 @@
-"""Haven Shield engine API.
+"""Eyil Shield engine API.
 
 Ties the scanners, behavioral engine, and feeds together behind a small local API
-that the Haven dashboard consumes. Run:
+that the Eyil dashboard consumes. Run:
 
     uvicorn engine.service:app --host 127.0.0.1 --port 8787
 """
@@ -30,7 +30,7 @@ from .updater import AutoUpdater
 from . import feeds
 from . import keystore
 
-app = FastAPI(title="Haven Shield Engine")
+app = FastAPI(title="Eyil Shield Engine")
 
 # The dashboard runs in a browser/desktop shell; allow local origins.
 app.add_middleware(
@@ -92,11 +92,11 @@ def _verdict_for(obj: MonitoredObject, findings: list) -> Verdict:
         dynamic = [f for f in findings if f.source not in _STATIC_SOURCES]
         if not dynamic:
             return Verdict(severity=Severity.safe, confidence=99,
-                           why="You marked this file as safe, so Haven isn't alerting on its signature.")
+                           why="You marked this file as safe, so Eyil isn't alerting on its signature.")
         v = fuse(dynamic)
         return Verdict(severity=v.severity, confidence=v.confidence, findings=findings,
                        why=("You allowed this file earlier — but it just did something "
-                            "risky, so Haven flagged it again: " + v.why))
+                            "risky, so Eyil flagged it again: " + v.why))
     obj.status = "active"
     return fuse(findings)
 
@@ -201,7 +201,7 @@ def _remove_from_thread(pid: int) -> None:
 async def _start_background():
     global _loop, monitor, procscanner, updater
     _loop = asyncio.get_running_loop()
-    if os.environ.get("HAVEN_REALTIME", "1") != "0":
+    if os.environ.get("EYIL_REALTIME", "1") != "0":
         monitor = RealtimeMonitor(engine, report=_report_from_thread)
         monitor.start()
         procscanner = ProcessScanner(engine, report=_report_from_thread,
@@ -602,7 +602,7 @@ async def stream(ws: WebSocket):
 
 
 # ---------- serve the built dashboard (single-process product) ----------
-# When the Haven UI has been built (`npm run build` in dashboard/), the engine
+# When the Eyil UI has been built (`npm run build` in dashboard/), the engine
 # serves it directly so the whole app is one process and one window — no
 # separate browser or dev server. Registered LAST so the API routes above win.
 _UI_DIST = Path(__file__).resolve().parent.parent / "dashboard" / "dist"

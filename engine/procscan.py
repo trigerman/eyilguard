@@ -8,7 +8,7 @@ its real PID — and can be terminated from the dashboard.
 
 This is detect-and-kill, not kernel pre-execution blocking (that still needs the
 minifilter driver). But it closes the big gap: "I ran a hacktool and nothing
-happened." Now Haven sees running programs, not just files on disk.
+happened." Now Eyil sees running programs, not just files on disk.
 """
 
 from __future__ import annotations

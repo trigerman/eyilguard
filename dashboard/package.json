@@ -1,9 +1,9 @@
 {
-  "name": "haven-dashboard",
+  "name": "eyil-dashboard",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Haven Shield dashboard — calm, transparent endpoint-protection UI.",
+  "description": "Eyil Shield dashboard — calm, transparent endpoint-protection UI.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
