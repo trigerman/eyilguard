@@ -9,6 +9,33 @@ It does not reinvent detection. It composes mature, free, auto-updating open-sou
 pieces and adds the glue, the real-time Windows hook, the behavioral correlation, and
 the UX.
 
+> **Status:** a work in progress, built in the open. The user-space layers (detection,
+> real-time monitoring, dashboard, auto-updating intel) work today; the kernel driver is
+> test-VM-only and it isn't code-signed yet — so it's a project, not a finished product.
+> See the honest [status section](#status-honest) for exactly what's real vs. in progress.
+
+## Why I built this
+
+I've always wanted to build a real open-source product — something people could actually
+use, not a toy. And I've always been frustrated by antivirus software: it's a black box.
+A red shield flashes, says *"threat blocked — trust me,"* and tells you nothing. What was
+the file? What was it doing? Where did it live, what did it touch, who did it talk to?
+You're not allowed to know.
+
+**Haven Shield is the AV I always wanted** — one where I can see exactly what every file is
+doing, in plain language, one toggle away from the full forensic truth (paths, hashes, IPs,
+the event log). Nothing hidden, nothing dumbed-down-and-then-lost. The same file makes sense
+to a curious beginner and to a malware analyst.
+
+It doesn't try to out-detect the commercial giants — it can't, and it's honest about that.
+Instead it composes the best free, auto-updating pieces (ClamAV, YARA, abuse.ch threat feeds)
+and adds the parts that were missing: a real-time Windows monitor, behavioral detection that
+catches ransomware by *what it does*, network command-and-control detection, a kernel
+minifilter for true on-access blocking, and above all a calm, transparent dashboard that
+respects your intelligence.
+
+It's GPLv3, it's a work in progress, and I'm building it in the open.
+
 ## What we borrow vs. what we build
 
 | Need | Component | Ours? |
