@@ -183,6 +183,61 @@ compile and test-sign — it deliberately does not build on a normal dev box.
 and an always-on SYSTEM service. Until those land, treat Eyil as a transparent, hackable
 **open-source project** — not a drop-in replacement for your primary antivirus.
 
+## Development
+
+Where the project stands today — a **work in progress, built in the open**, and honest
+about what's real vs. scaffold.
+
+### ✅ Done (works today)
+- [x] **Detection engine** — ClamAV (`clamd`, INSTREAM) wired and detecting (EICAR-verified)
+- [x] **~5,940 YARA rules** — 12 built-in (`engine/yara_builtin/`) + ~5,900 community
+      `signature-base` + **your own custom rules**, via the `yara-x` engine
+- [x] **Hash + C2 intel** — abuse.ch MalwareBazaar hashes + Feodo Tracker C2 IPs
+- [x] **Behavioral detection** — ransomware / temp-exec / office-spawned-shell / network C2
+- [x] **Real-time monitor** — `watchdog` file watcher + a **live process inventory** (every
+      running app, threats flagged, quarantine kills the process)
+- [x] **Auto-updating intel** — scheduled + on-demand (`POST /update`), hot-reloaded live
+- [x] **Update-health** — never advances a timestamp on a failed fetch; always visible
+- [x] **Local API + WebSocket** — `engine/service.py`, bound to `127.0.0.1` only
+- [x] **Dashboard wired to the live engine** — Simple/Technical views, allow / quarantine /
+      un-allow, a whitelist panel, **write-your-own YARA rules**, demo fallback when offline
+- [x] **BYOK key store** — masked keys for the richer abuse.ch / Malpedia feeds
+- [x] **Single-process desktop app** — pywebview + WebView2 native window (`python -m eyil`)
+- [x] **Installer + standalone `Eyil.exe`** — `install.ps1` / `uninstall.ps1` + PyInstaller
+
+### 📦 What's in the box right now
+| Asset | Count |
+|---|---|
+| YARA rules loaded | **~5,928** |
+| Malware hashes | **~1,964** |
+| C2 IPs | **~115** |
+| Engine endpoints | `/health` · `/objects` · `/scan` · `/events` · `/action` · `/update` · `/rescan` · `/keys` · `/allowlist` · `/yara/*` · `/stream` |
+
+### 🚧 Code-complete — build it in a VM
+- [ ] **Kernel minifilter** (`driver/`) for true *pre-execution blocking*. Code-complete
+      with a full build/sign/install runbook ([`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md)).
+      Needs a Windows VM + the WDK — it deliberately does not build on a normal dev box.
+
+### ⬜ Left to build
+**Near-term (doable in the dev env)**
+- [ ] Move runtime `data/` → `%LOCALAPPDATA%\EyilGuard` (survives updates, per-user)
+- [ ] System-tray icon for the background listener (Open / Pause / Quit)
+- [ ] MalwareBazaar full-feed toggle / longer feed windows
+
+**Needs input or a data source**
+- [ ] Malpedia curated-YARA fetch (needs a free Malpedia key)
+- [ ] Domain / URL blocking (needs a DNS / URL event source)
+
+**Needs privilege or paid assets**
+- [ ] Build + run the kernel minifilter in a VM
+- [ ] Always-on **SYSTEM service** (runs before login, for all users)
+- [ ] **Code-sign `Eyil.exe`** (no SmartScreen warning) — needs a code-signing cert
+
+**Future**
+- [ ] Sigma rules → `behavior.py`; richer behavioral correlation
+- [ ] Installer polish (MSIX / Inno); remote management (needs API auth first)
+- [ ] Add the GPLv3 `LICENSE` file
+
 ## Threat-intel feeds & attribution
 
 Eyil composes free, keyless **bulk exports** from [abuse.ch](https://abuse.ch) (now part
