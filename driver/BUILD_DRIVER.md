@@ -114,6 +114,25 @@ fltmc filters          # 'avfilter' should appear with altitude 321410
 sc query EyilGuardScan
 ```
 
+**Known-good output (verified on a Windows VM):**
+```text
+> fltmc filters
+Filter Name     Num Instances    Altitude    Frame
+--------------  -------------  ------------  -----
+WdFilter                5         328010       0     (Microsoft Defender)
+AvFilter                5         321410       0     <- ours, loaded just below Defender
+FileInfo                5          40500       0
+
+> # writing an EICAR file inside the scan scope is then refused:
+Set-Content : Operation did not complete successfully because the file contains a virus
+```
+`AvFilter` in the list **+** the refused write = the kernel block is live. The driver only
+inspects paths under **`C:\EyilScanLab\`**, so the test file must live there
+(`test_eicar_vm.ps1` uses `C:\EyilScanLab\eyil-eicar.com`). Note: an *eicar-named* file trips
+the driver's built-in filename shortcut and is blocked before the scanner is consulted — to
+exercise the full driver → `FltSendMessage` → `scanner_service.exe` → SHA-256 → blocklist path,
+use a **non-eicar name whose hash is in `data/hashes.txt`**.
+
 ## 6. Test it (safely, with EICAR)
 
 The service flags the **EICAR test string** (a harmless standard AV test file) by
