@@ -10,9 +10,10 @@ pieces and adds the glue, the real-time Windows hook, the behavioral correlation
 the UX.
 
 > **Status:** a work in progress, built in the open. The user-space layers (detection,
-> real-time monitoring, dashboard, auto-updating intel) work today; the kernel driver is
-> test-VM-only and it isn't code-signed yet — so it's a project, not a finished product.
-> See the honest [status section](#status-honest) for exactly what's real vs. in progress.
+> real-time monitoring, dashboard, auto-updating intel) work today, and the kernel driver now
+> blocks on a test VM — but it's test-signed/VM-only and not yet code-signed, so it's a
+> project, not a finished product. See the honest [status section](#status-honest) for exactly
+> what's real vs. in progress.
 
 ## Why I built this
 
@@ -174,10 +175,12 @@ Run the engine separately (`python -m eyil --no-window`) so the dev UI has live 
 - **Packaging** — single-process native window (pywebview + WebView2), `install.ps1` setup,
   autostart listener, and a standalone `Eyil.exe`.
 
-**Kernel layer — build it in a VM:** the minifilter for true *pre-execution blocking* is
-code-complete (`driver/`), with a full build/sign/install runbook in
-[`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md). It needs a **Windows VM + the WDK** to
-compile and test-sign — it deliberately does not build on a normal dev box.
+**Kernel layer — runs on a test VM:** the minifilter for true *pre-execution blocking*
+(`driver/`) now **builds, test-signs, loads and blocks** on a Windows VM — an EICAR file
+opened inside its scan scope (`C:\EyilScanLab\`) is stopped *before the open completes* with
+`STATUS_VIRUS_INFECTED`. It stays deliberately narrow-scoped and **test-signed (VM-only)**;
+see [`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md). Production use needs a real
+code-signing cert and a wider scope.
 
 **Not yet (for a *shipped* product):** code-signing (so users don't hit SmartScreen warnings)
 and an always-on SYSTEM service. Until those land, treat Eyil as a transparent, hackable
@@ -213,10 +216,11 @@ about what's real vs. scaffold.
 | C2 IPs | **~115** |
 | Engine endpoints | `/health` · `/objects` · `/scan` · `/events` · `/action` · `/update` · `/rescan` · `/keys` · `/allowlist` · `/yara/*` · `/stream` |
 
-### 🚧 Code-complete — build it in a VM
-- [ ] **Kernel minifilter** (`driver/`) for true *pre-execution blocking*. Code-complete
-      with a full build/sign/install runbook ([`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md)).
-      Needs a Windows VM + the WDK — it deliberately does not build on a normal dev box.
+### ✅ Kernel pre-execution blocking — verified on a VM
+- [x] **Kernel minifilter** (`driver/`) **builds, test-signs, loads and blocks** on a Windows
+      VM: an EICAR file opened inside its `\EyilScanLab\` scan scope is stopped pre-open with
+      `STATUS_VIRUS_INFECTED` (runbook: [`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md)).
+      Test-signed + VM-only by design — production needs a real code-signing cert + a wider scope.
 
 ### ⬜ Left to build
 **Near-term (doable in the dev env)**
@@ -229,7 +233,6 @@ about what's real vs. scaffold.
 - [ ] Domain / URL blocking (needs a DNS / URL event source)
 
 **Needs privilege or paid assets**
-- [ ] Build + run the kernel minifilter in a VM
 - [ ] Always-on **SYSTEM service** (runs before login, for all users)
 - [ ] **Code-sign `Eyil.exe`** (no SmartScreen warning) — needs a code-signing cert
 
