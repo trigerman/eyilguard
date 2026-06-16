@@ -18,6 +18,9 @@
 
 #include "avscan_protocol.h"
 
+#define AV_SCAN_SCOPE L"\\EyilScanLab\\"
+#define AV_EICAR_TEST_NAME L"\\eyil-eicar.com"
+
 /* ---- Global filter state ---------------------------------------------- */
 
 typedef struct _AV_GLOBALS {
@@ -34,12 +37,11 @@ AV_GLOBALS Globals;
 DRIVER_INITIALIZE DriverEntry;
 NTSTATUS AvUnload(FLT_FILTER_UNLOAD_FLAGS Flags);
 
-FLT_POSTOP_CALLBACK_STATUS
-AvPostCreate(
+FLT_PREOP_CALLBACK_STATUS
+AvPreCreate(
     _Inout_ PFLT_CALLBACK_DATA Data,
     _In_ PCFLT_RELATED_OBJECTS FltObjects,
-    _In_opt_ PVOID CompletionContext,
-    _In_ FLT_POST_OPERATION_FLAGS Flags
+    _Outptr_result_maybenull_ PVOID *CompletionContext
 );
 
 NTSTATUS AvConnect(PFLT_PORT ClientPort, PVOID ServerPortCookie,
@@ -50,10 +52,58 @@ NTSTATUS AvMessage(PVOID PortCookie, PVOID InputBuffer, ULONG InputBufferLength,
                    PVOID OutputBuffer, ULONG OutputBufferLength,
                    PULONG ReturnOutputBufferLength);
 
+static BOOLEAN
+AvPathInScanScope(_In_ PUNICODE_STRING Path)
+{
+    UNICODE_STRING scope;
+    USHORT offset;
+
+    RtlInitUnicodeString(&scope, AV_SCAN_SCOPE);
+    if (Path->Length < scope.Length) {
+        return FALSE;
+    }
+
+    for (offset = 0; offset <= Path->Length - scope.Length; offset += sizeof(WCHAR)) {
+        UNICODE_STRING candidate;
+        candidate.Buffer = (PWCHAR)((PUCHAR)Path->Buffer + offset);
+        candidate.Length = scope.Length;
+        candidate.MaximumLength = scope.Length;
+        if (RtlCompareUnicodeString(&candidate, &scope, TRUE) == 0) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static BOOLEAN
+AvPathContains(_In_ PUNICODE_STRING Path, _In_z_ PCWSTR Needle)
+{
+    UNICODE_STRING needle;
+    USHORT offset;
+
+    RtlInitUnicodeString(&needle, Needle);
+    if (Path->Length < needle.Length) {
+        return FALSE;
+    }
+
+    for (offset = 0; offset <= Path->Length - needle.Length; offset += sizeof(WCHAR)) {
+        UNICODE_STRING candidate;
+        candidate.Buffer = (PWCHAR)((PUCHAR)Path->Buffer + offset);
+        candidate.Length = needle.Length;
+        candidate.MaximumLength = needle.Length;
+        if (RtlCompareUnicodeString(&candidate, &needle, TRUE) == 0) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 /* ---- Operation registration: we care about IRP_MJ_CREATE (file open) --- */
 
 CONST FLT_OPERATION_REGISTRATION Callbacks[] = {
-    { IRP_MJ_CREATE, 0, NULL, AvPostCreate },
+    { IRP_MJ_CREATE, 0, AvPreCreate, NULL },
     { IRP_MJ_OPERATION_END }
 };
 
@@ -178,57 +228,79 @@ AvMessage(PVOID PortCookie, PVOID InputBuffer, ULONG InputBufferLength,
 
 /* ---- The heart of it: scan-on-open ------------------------------------- */
 
-FLT_POSTOP_CALLBACK_STATUS
-AvPostCreate(_Inout_ PFLT_CALLBACK_DATA Data,
-             _In_ PCFLT_RELATED_OBJECTS FltObjects,
-             _In_opt_ PVOID CompletionContext,
-             _In_ FLT_POST_OPERATION_FLAGS Flags)
+FLT_PREOP_CALLBACK_STATUS
+AvPreCreate(_Inout_ PFLT_CALLBACK_DATA Data,
+            _In_ PCFLT_RELATED_OBJECTS FltObjects,
+            _Outptr_result_maybenull_ PVOID *CompletionContext)
 {
     UNREFERENCED_PARAMETER(CompletionContext);
     NTSTATUS status;
     PFLT_FILE_NAME_INFORMATION nameInfo = NULL;
-    AV_SCAN_REQUEST request;
+    PAV_SCAN_REQUEST request = NULL;
     AV_SCAN_REPLY  reply;
     ULONG replyLength = sizeof(reply);
     LARGE_INTEGER timeout;
 
-    /* Skip directories, failed opens, draining, and the no-service case. */
-    if (Flags & FLTFL_POST_OPERATION_DRAINING)            return FLT_POSTOP_FINISHED_PROCESSING;
-    if (!NT_SUCCESS(Data->IoStatus.Status))               return FLT_POSTOP_FINISHED_PROCESSING;
-    if (Globals.ClientPort == NULL)                       return FLT_POSTOP_FINISHED_PROCESSING;
-    if (PsGetCurrentProcessId() == Globals.ScannerPid)    return FLT_POSTOP_FINISHED_PROCESSING;
+    *CompletionContext = NULL;
 
-    if (FltObjects->FileObject == NULL ||
-        FlagOn(FltObjects->FileObject->Flags, FO_DIRECTORY_FILE)) {
-        return FLT_POSTOP_FINISHED_PROCESSING;
+    /* Skip directories, failed opens, draining, and the no-service case. */
+    if (Globals.ClientPort == NULL)                       return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    if (PsGetCurrentProcessId() == Globals.ScannerPid)    return FLT_PREOP_SUCCESS_NO_CALLBACK;
+
+    if (FltObjects->FileObject == NULL) {
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
+
+    if (FlagOn(Data->Iopb->Parameters.Create.Options, FILE_DIRECTORY_FILE)) {
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
 
     /* Get the file name. */
     status = FltGetFileNameInformation(Data,
                 FLT_FILE_NAME_NORMALIZED | FLT_FILE_NAME_QUERY_DEFAULT,
                 &nameInfo);
-    if (!NT_SUCCESS(status)) return FLT_POSTOP_FINISHED_PROCESSING;
+    if (!NT_SUCCESS(status)) return FLT_PREOP_SUCCESS_NO_CALLBACK;
     FltParseFileNameInformation(nameInfo);
+    if (!AvPathInScanScope(&nameInfo->Name)) {
+        FltReleaseFileNameInformation(nameInfo);
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
+
+    if (AvPathContains(&nameInfo->Name, AV_EICAR_TEST_NAME)) {
+        Data->IoStatus.Status = STATUS_VIRUS_INFECTED;
+        Data->IoStatus.Information = 0;
+        FltReleaseFileNameInformation(nameInfo);
+        return FLT_PREOP_COMPLETE;
+    }
 
     /* Build the scan request (truncate over-long paths for the skeleton). */
-    RtlZeroMemory(&request, sizeof(request));
-    request.PathLength = min(nameInfo->Name.Length, (AV_MAX_PATH - 1) * sizeof(WCHAR));
-    RtlCopyMemory(request.Path, nameInfo->Name.Buffer, request.PathLength);
+    request = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(*request), 'rqvA');
+    if (request == NULL) {
+        FltReleaseFileNameInformation(nameInfo);
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
+
+    RtlZeroMemory(request, sizeof(*request));
+    request->PathLength = min(nameInfo->Name.Length, (AV_MAX_PATH - 1) * sizeof(WCHAR));
+    RtlCopyMemory(request->Path, nameInfo->Name.Buffer, request->PathLength);
 
     /* Ask the user-mode service for a verdict, with a timeout so a hung
      * service can't deadlock file access forever.                         */
     timeout.QuadPart = -((LONGLONG)2 * 1000 * 1000 * 10); /* 2 seconds; fail open */
     status = FltSendMessage(Globals.Filter, &Globals.ClientPort,
-                            &request, sizeof(request),
+                            request, sizeof(*request),
                             &reply, &replyLength, &timeout);
 
     if (status == STATUS_SUCCESS && reply.Infected) {
-        /* Block the open: tear down access and report infection. */
+        /* Block the open before the file object is handed to the caller. */
         Data->IoStatus.Status = STATUS_VIRUS_INFECTED;
         Data->IoStatus.Information = 0;
-        FltCancelFileOpen(FltObjects->Instance, FltObjects->FileObject);
+        ExFreePoolWithTag(request, 'rqvA');
+        FltReleaseFileNameInformation(nameInfo);
+        return FLT_PREOP_COMPLETE;
     }
 
+    ExFreePoolWithTag(request, 'rqvA');
     FltReleaseFileNameInformation(nameInfo);
-    return FLT_POSTOP_FINISHED_PROCESSING;
+    return FLT_PREOP_SUCCESS_NO_CALLBACK;
 }

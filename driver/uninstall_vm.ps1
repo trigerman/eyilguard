@@ -13,6 +13,10 @@ sc.exe delete EyilGuardScan | Out-Null
 
 Write-Host "Unloading minifilter..." -ForegroundColor Yellow
 fltmc unload AvFilter
+sc.exe stop AvFilter | Out-Null
+sc.exe delete AvFilter | Out-Null
+Remove-Item -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Services\AvFilter" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath "$env:SystemRoot\System32\drivers\avfilter.sys" -Force -ErrorAction SilentlyContinue
 
 Write-Host "If you need to remove the driver package from the driver store, run:" -ForegroundColor Cyan
 Write-Host "  pnputil /enum-drivers | findstr /i avfilter"

@@ -216,7 +216,7 @@ static DWORD RunScannerLoop(void)
         AV_REPLY rep = {0};
         rep.Header.Status = 0;
         rep.Header.MessageId = msg.Header.MessageId;
-        rep.Reply.Infected = infected;
+        rep.Reply.Infected = (BOOLEAN)(infected ? TRUE : FALSE);
 
         hr = FilterReplyMessage(g_port, &rep.Header, sizeof(rep));
         if (FAILED(hr)) {

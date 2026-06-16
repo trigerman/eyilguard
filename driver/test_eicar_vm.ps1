@@ -1,9 +1,10 @@
 [CmdletBinding()]
 param(
-  [string]$Path = "$env:TEMP\eyil-eicar.com"
+  [string]$Path = "C:\EyilScanLab\eyil-eicar.com"
 )
 
 $ErrorActionPreference = "Continue"
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Path) | Out-Null
 
 $eicar = 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 Set-Content -LiteralPath $Path -Value $eicar -NoNewline -Encoding ASCII

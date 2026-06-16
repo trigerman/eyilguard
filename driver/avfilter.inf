@@ -38,9 +38,9 @@ AddReg         = AvFilter.AddRegistry
 
 [AvFilter.AddRegistry]
 HKR,"Parameters","SupportedFeatures",0x00010001,0x3
-HKR,"Parameters\Instances","DefaultInstance",0x00000000,%DefaultInstance%
-HKR,"Parameters\Instances\%Instance1.Name%","Altitude",0x00000000,%Instance1.Altitude%
-HKR,"Parameters\Instances\%Instance1.Name%","Flags",0x00010001,0x0
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\%Instance1.Name%","Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\%Instance1.Name%","Flags",0x00010001,0x0
 
 [AvFilter.DriverFiles]
 %DriverName%.sys
