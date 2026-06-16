@@ -119,20 +119,12 @@ It's GPLv3, it's a work in progress, and I'm building it in the open.
 
 ## Architecture
 
-```
-   [ minifilter driver ]        [ Sysmon / OSQuery ]
-   on file open/write             process/net/registry
-            \                        /
-             \                      /
-            ( events, tagged with PID )
-                      |
-              engine/service.py  ──────────────►  Eyil dashboard
-              (FastAPI + WebSocket)  local API     (Simple / Technical)
-                /     |       \
-        scanners.py behavior.py feeds.py
-        ClamAV+YARA  rules      abuse.ch + freshclam health
-        +hash list
-```
+![Eyil Guard architecture — kernel minifilter → engine → dashboard, with five detection layers](assets/architecture.svg)
+
+A file open is intercepted by the **kernel minifilter** (pre-execution block), handed to the local
+**engine** for a verdict from **five detection layers** (ClamAV · YARA · hash blocklist · behavioral
+· network C2) fed by **auto-updating** abuse.ch intel, and the result lands in the **dashboard** —
+Simple or Technical. Everything stays on `127.0.0.1`.
 
 ## Folder layout
 
