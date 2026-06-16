@@ -42,7 +42,7 @@ behavior = BehaviorEngine()
 objects: dict[int, MonitoredObject] = {}   # pid -> object
 
 # ---------- user decisions: allowlist + quarantine ----------
-DATA = Path(__file__).resolve().parent.parent / "data"
+from .paths import DATA
 QUARANTINE_DIR = DATA / "quarantine"
 ALLOWLIST_FILE = DATA / "allowlist.json"
 

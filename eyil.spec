@@ -4,6 +4,7 @@
 # serves the bundled dashboard, and opens the native window. ClamAV (clamd) is
 # NOT bundled (217 MB); the launcher starts a locally-installed clamd if present.
 
+import os
 from PyInstaller.utils.hooks import collect_submodules
 
 hidden = (
@@ -21,6 +22,12 @@ datas = [
     ("data/clam/clamd.conf", "data/clam"),
     ("data/clam/freshclam.conf", "data/clam"),
 ]
+# Bundle the community YARA rules (signature-base, etc.) when they've been downloaded,
+# so the exe ships the full ruleset instead of just the 12 builtin rules. These are
+# DRL-licensed — included as data with attribution (see README). On first run the
+# frozen app seeds them into %LOCALAPPDATA%\EyilGuard\data\yara (engine/paths.py).
+if os.path.isdir("data/yara"):
+    datas.append(("data/yara", "data/yara"))
 
 a = Analysis(
     ["eyil/__main__.py"],

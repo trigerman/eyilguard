@@ -29,7 +29,7 @@ try:
 except ImportError:
     _HAVE_YARA = False
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+from .paths import DATA
 HASH_FILE = DATA / "hashes.txt"
 YARA_DIR = DATA / "yara"                                   # user / Malpedia rules
 BUILTIN_YARA_DIR = Path(__file__).resolve().parent / "yara_builtin"   # shipped rules

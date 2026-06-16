@@ -17,7 +17,7 @@ from pathlib import Path
 
 import requests
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+from .paths import DATA
 HASH_FILE = DATA / "hashes.txt"
 C2_FILE = DATA / "c2_ips.txt"
 STATE_FILE = DATA / "feed_state.json"

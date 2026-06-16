@@ -15,7 +15,7 @@ import json
 import os
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+from .paths import DATA
 KEYS_FILE = DATA / "keys.json"
 LEGACY_ABUSE = DATA / "abuse_ch_key.txt"
 

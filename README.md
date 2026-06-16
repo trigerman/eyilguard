@@ -136,8 +136,8 @@ The launcher **starts `clamd` itself** if it isn't already running.
 powershell -ExecutionPolicy Bypass -File build_exe.ps1   # → dist\Eyil\Eyil.exe
 ```
 A windowed bundle with the dashboard inside. ClamAV (clamd) is installed separately, not
-bundled. (Note: the frozen app currently keeps its `data/` inside the bundle folder;
-moving runtime state to `%LOCALAPPDATA%\EyilGuard` is a planned refinement.)
+bundled. The frozen app ships the **full YARA ruleset** and keeps its writable runtime data
+(feeds, keys, quarantine) in **`%LOCALAPPDATA%\EyilGuard\data`**, seeded on first run.
 
 **Live vs. demo data (honest by default):** the dashboard talks to the engine on its own
 origin. If the engine is unreachable it falls back to clearly-labelled **demo data** (a
@@ -228,7 +228,6 @@ about what's real vs. scaffold.
 
 ### ⬜ Left to build
 **Near-term (doable in the dev env)**
-- [ ] Move runtime `data/` → `%LOCALAPPDATA%\EyilGuard` (survives updates, per-user)
 - [ ] System-tray icon for the background listener (Open / Pause / Quit)
 - [ ] MalwareBazaar full-feed toggle / longer feed windows
 

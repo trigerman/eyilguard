@@ -24,7 +24,7 @@ from . import feeds
 from . import keystore
 from .scanners import Engine
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+from .paths import DATA
 FRESHCLAM_CONF = DATA / "clam" / "freshclam.conf"
 
 _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0

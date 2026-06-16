@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .models import Event, Finding, Verdict, Severity
 
-_DATA = Path(__file__).resolve().parent.parent / "data"
+from .paths import DATA as _DATA
 C2_FILES = (_DATA / "c2_ips.txt",          # abuse.ch Feodo Tracker
             _DATA / "threatfox_ips.txt")   # abuse.ch ThreatFox C2 IPs
 
