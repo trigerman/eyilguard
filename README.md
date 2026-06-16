@@ -21,11 +21,20 @@ the UX.
 > looks identical against your live system.
 
 ### Calm by default — loud only when something needs you
-The fortress mascot goes from calm to **alert**, and the hero tells you what happened in one plain
-sentence. Threats get cards; everything else that's running collapses into a single quiet line —
-so a wall of safe processes never buries the one thing that matters.
+Most of the time it just sits there, calm: a green all-clear and an always-visible health strip.
+When something's actually wrong the fortress turns **alert** and tells you what happened in one
+plain sentence — and only the threats get cards, so a wall of safe processes never buries the one
+thing that matters.
 
-![Eyil Guard dashboard — alert state with two flagged files](assets/screenshots/01-dashboard.png)
+| All-clear (the usual) | Something flagged |
+|---|---|
+| ![All-clear dashboard](assets/screenshots/06-calm.png) | ![Alert dashboard with two flagged files](assets/screenshots/01-dashboard.png) |
+
+### Total transparency — see *everything* that's running
+One click expands the full live inventory: every process on your machine, each with its own verdict
+(here, 22 watched — all safe). Nothing hidden behind a "trust me" — that's the whole point.
+
+![Live running-apps inventory](assets/screenshots/05-running-apps.png)
 
 ### Every file, two ways: a calm explanation *or* the full forensic truth
 One toggle. **Simple** answers the human questions — where it lives, whether it goes online, what
