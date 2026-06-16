@@ -176,11 +176,13 @@ Run the engine separately (`python -m eyil --no-window`) so the dev UI has live 
   autostart listener, and a standalone `Eyil.exe`.
 
 **Kernel layer — runs on a test VM:** the minifilter for true *pre-execution blocking*
-(`driver/`) now **builds, test-signs, loads and blocks** on a Windows VM — an EICAR file
-opened inside its scan scope (`C:\EyilScanLab\`) is stopped *before the open completes* with
-`STATUS_VIRUS_INFECTED`. It stays deliberately narrow-scoped and **test-signed (VM-only)**;
-see [`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md). Production use needs a real
-code-signing cert and a wider scope.
+(`driver/`) now **builds, test-signs, loads and blocks** on a Windows VM. The **full pipeline**
+is verified — the driver intercepts a file open under its scope (`C:\EyilScanLab\`), hands the
+path to `scanner_service.exe`, which SHA-256s it and checks the 2,000+ blocklist, and the kernel
+stops the open *before it completes* with `STATUS_VIRUS_INFECTED`. It stays deliberately
+narrow-scoped and **test-signed (VM-only)**; see
+[`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md). Production use needs a real code-signing
+cert and a wider scope.
 
 **Not yet (for a *shipped* product):** code-signing (so users don't hit SmartScreen warnings)
 and an always-on SYSTEM service. Until those land, treat Eyil as a transparent, hackable
@@ -217,10 +219,12 @@ about what's real vs. scaffold.
 | Engine endpoints | `/health` · `/objects` · `/scan` · `/events` · `/action` · `/update` · `/rescan` · `/keys` · `/allowlist` · `/yara/*` · `/stream` |
 
 ### ✅ Kernel pre-execution blocking — verified on a VM
-- [x] **Kernel minifilter** (`driver/`) **builds, test-signs, loads and blocks** on a Windows
-      VM: an EICAR file opened inside its `\EyilScanLab\` scan scope is stopped pre-open with
-      `STATUS_VIRUS_INFECTED` (runbook: [`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md)).
-      Test-signed + VM-only by design — production needs a real code-signing cert + a wider scope.
+- [x] **Kernel minifilter** (`driver/`) **builds, test-signs, loads and blocks** on a Windows VM.
+      Both paths are verified: the in-kernel block *and* the **full driver → `scanner_service.exe`
+      → SHA-256 → blocklist round-trip** — a file under `\EyilScanLab\` is hashed, matched against
+      the 2,000+ blocklist, and stopped pre-open with `STATUS_VIRUS_INFECTED`
+      (runbook: [`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md)). Test-signed + VM-only by
+      design — production needs a real code-signing cert + a wider scope.
 
 ### ⬜ Left to build
 **Near-term (doable in the dev env)**

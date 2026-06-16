@@ -128,10 +128,19 @@ Set-Content : Operation did not complete successfully because the file contains 
 ```
 `AvFilter` in the list **+** the refused write = the kernel block is live. The driver only
 inspects paths under **`C:\EyilScanLab\`**, so the test file must live there
-(`test_eicar_vm.ps1` uses `C:\EyilScanLab\eyil-eicar.com`). Note: an *eicar-named* file trips
-the driver's built-in filename shortcut and is blocked before the scanner is consulted — to
-exercise the full driver → `FltSendMessage` → `scanner_service.exe` → SHA-256 → blocklist path,
-use a **non-eicar name whose hash is in `data/hashes.txt`**.
+(`test_eicar_vm.ps1` uses `C:\EyilScanLab\eyil-eicar.com`).
+
+That EICAR test only proves the *in-kernel* block — an *eicar-named* file trips the driver's
+filename shortcut before the scanner is consulted. **`test_hashpath_vm.ps1`** proves the **full
+round-trip** with a *non-eicar* name (EICAR *content*), so the driver must ask user mode. Run
+the scanner in the foreground to watch it (`sc.exe stop EyilGuardScan` then
+`.\out\Debug\scanner_service.exe --hashes ..\data\hashes.txt`). Verified-on-VM output:
+```text
+[blocklist] loaded 2009 known-bad hashes from C:\eyil-src\data\hashes.txt
+Connected. Waiting for scan requests...
+\Device\HarddiskVolume3\EyilScanLab\notavirus.txt  ->  INFECTED (blocking)
+```
+i.e. driver → `FltSendMessage` → `scanner_service.exe` → SHA-256 → blocklist → kernel block. ✅
 
 ## 6. Test it (safely, with EICAR)
 
