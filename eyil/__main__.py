@@ -29,7 +29,13 @@ PORT = 8787
 URL = f"http://{HOST}:{PORT}"
 CLAMD_PORT = 3310
 
-ROOT = Path(__file__).resolve().parent.parent
+# In a PyInstaller build the bundled data (UI, clam confs) lives under sys._MEIPASS
+# (the exe's _internal dir). From source it's the project root. The entry script's
+# __file__ points at the exe folder, NOT _internal — so resolve frozen paths explicitly.
+if getattr(sys, "frozen", False):
+    ROOT = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+else:
+    ROOT = Path(__file__).resolve().parent.parent
 UI_DIST = ROOT / "dashboard" / "dist"
 CLAM_CONF = ROOT / "data" / "clam" / "clamd.conf"
 CLAM_LOG = ROOT / "data" / "clam" / "clamd.out.log"
