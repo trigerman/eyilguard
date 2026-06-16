@@ -20,6 +20,10 @@ the UX.
 > project, not a finished product. See the honest [status section](#status-honest) for exactly
 > what's real vs. in progress.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Eyil Guard feature tour — a flagged file, the Simple view, the Technical forensic view, and Settings" width="620">
+</p>
+
 ## A look inside
 
 > Screenshots use **demo data** (no real malware) so you can see the threat states. The real app
