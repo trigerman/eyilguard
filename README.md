@@ -47,10 +47,6 @@ The usual state, all clear:
 
 ![All clear](assets/screenshots/06-calm.png)
 
-Expanding the inventory shows every running process with a verdict:
-
-![Running process inventory](assets/screenshots/05-running-apps.png)
-
 A file in technical view:
 
 ![Technical view](assets/screenshots/03-technical.png)
