@@ -1,336 +1,163 @@
 # Eyil Guard
 
-![License: GPLv3](https://img.shields.io/badge/license-GPLv3-7B6CF6.svg)
-&nbsp;![Platform: Windows](https://img.shields.io/badge/platform-Windows-2E2A4F.svg)
-&nbsp;![Detection: ClamAV + ~5,900 YARA](https://img.shields.io/badge/detection-ClamAV%20%2B%20~5%2C900%20YARA-5FBF9B.svg)
-&nbsp;![Status: work in progress](https://img.shields.io/badge/status-work%20in%20progress-F2C14E.svg)
+Eyil Guard is an open-source endpoint protection tool for Windows. Every file it inspects
+gets a short, plain-language verdict, and that verdict is one click away from the full
+technical record: file path, hashes, network connections, and the raw event log. It does
+not try to out-detect commercial antivirus. It composes existing open-source components
+(ClamAV, YARA, the abuse.ch feeds) and adds the Windows integration, the behavioral rules,
+and the interface.
 
-An **open-source (GPLv3) endpoint protection tool for Windows** that's honest about
-what it does. Its difference isn't out-detecting commercial antivirus — it's
-*transparency*: every file gets a calm, plain-language verdict that's one click away
-from full forensic detail (paths, hashes, IPs, event log).
-
-It does not reinvent detection. It composes mature, free, auto-updating open-source
-pieces and adds the glue, the real-time Windows hook, the behavioral correlation, and
-the UX.
-
-> **Status:** a work in progress, built in the open. The user-space layers (detection,
-> real-time monitoring, dashboard, auto-updating intel) work today, and the kernel driver now
-> blocks on a test VM — but it's test-signed/VM-only and not yet code-signed, so it's a
-> project, not a finished product. See the honest [status section](#status-honest) for exactly
-> what's real vs. in progress.
+The user-space parts (detection, real-time monitoring, the dashboard, automatic updates)
+work today. The kernel driver builds and blocks on a test virtual machine, but it is
+test-signed and VM-only, not yet code-signed for general use. This is a work in progress.
 
 <p align="center">
-  <img src="assets/demo.gif" alt="Eyil Guard feature tour — a flagged file, the Simple view, the Technical forensic view, and Settings" width="620">
+  <img src="assets/demo.gif" alt="A flagged file, the Simple view, the Technical view, and Settings" width="620">
 </p>
 
-## A look inside
+## Features
 
-> Screenshots use **demo data** (no real malware) so you can see the threat states. The real app
-> looks identical against your live system.
+- Detection from five sources: ClamAV signatures, about 5,900 YARA rules (community
+  signature-base, 12 built-in rules, and any you write), an abuse.ch hash blocklist,
+  behavioral rules (ransomware, execution from temp directories, office applications
+  spawning shells), and checks against connections to known command-and-control servers.
+- A live process inventory. It tracks programs that are actually running, not only files on
+  disk, and shows each one with its verdict and process ID. Flagged processes can be
+  terminated from the dashboard.
+- Automatic updates with visible health. Threat intelligence refreshes on a schedule, and
+  the dashboard always shows when each source last updated. A failed fetch is reported as
+  stale rather than current.
+- Two views per file. A plain summary (where it lives, whether it uses the network, what it
+  touches) and a full technical view (path, process ID, parent process, signer, size,
+  SHA-256, CPU and memory, and a link to look the hash up on VirusTotal manually).
+- Extensible. Write your own YARA rules in the app, and add free API keys (abuse.ch,
+  Malpedia) for larger feeds. Rules and keys stay on the machine.
+- Kernel pre-execution blocking. A file-system minifilter intercepts a file open, asks the
+  engine for a verdict, and blocks the open before it completes. Verified on a Windows VM
+  (test-signed, narrow scope).
+- One local process. The engine serves both the API and the dashboard window. Nothing is
+  exposed beyond 127.0.0.1.
 
-### Calm by default — loud only when something needs you
-Most of the time it just sits there, calm: a green all-clear and an always-visible health strip.
-When something's actually wrong the fortress turns **alert** and tells you what happened in one
-plain sentence — and only the threats get cards, so a wall of safe processes never buries the one
-thing that matters.
+## Screenshots
 
-| All-clear (the usual) | Something flagged |
-|---|---|
-| ![All-clear dashboard](assets/screenshots/06-calm.png) | ![Alert dashboard with two flagged files](assets/screenshots/01-dashboard.png) |
+The screenshots below use demo data so the threat states are visible. Against a live system
+the interface is identical.
 
-### Total transparency — see *everything* that's running
-One click expands the full live inventory: every process on your machine, each with its own verdict
-(here, 22 watched — all safe). Nothing hidden behind a "trust me" — that's the whole point.
+The usual state, all clear:
 
-![Live running-apps inventory](assets/screenshots/05-running-apps.png)
+![All clear](assets/screenshots/06-calm.png)
 
-### Every file, two ways: a calm explanation *or* the full forensic truth
-One toggle. **Simple** answers the human questions — where it lives, whether it goes online, what
-it touches, who it talks to. **Technical** is the whole truth — full path, PID, parent process,
-signer, size, **SHA-256**, live CPU/memory, and a one-click *manual* VirusTotal lookup.
+Expanding the inventory shows every running process with a verdict:
 
-| Simple view | Technical view |
-|---|---|
-| ![Simple view](assets/screenshots/02-simple-detail.png) | ![Technical view](assets/screenshots/03-technical.png) |
+![Running process inventory](assets/screenshots/05-running-apps.png)
 
-### It's *your* antivirus — tune it
-![Settings — keys, whitelist, custom YARA, uninstall](assets/screenshots/04-settings.png)
+A file in technical view:
 
-- **Bring-your-own-key** feeds (abuse.ch, Malpedia) — stored only on your machine, never uploaded.
-- A **whitelist** that hides what you trust (and re-alerts if it ever misbehaves).
-- **Write your own YARA rules** — validate, test against a file, and save; they compile straight
-  into the live engine. This is your AV — teach it what to look for.
-- **One-click uninstall**, and an honest note on why VirusTotal's API isn't baked in.
+![Technical view](assets/screenshots/03-technical.png)
 
-## What makes it different
+Settings: feed keys, the allow list, and a YARA rule editor:
 
-Most antivirus is a black box: a red shield flashes "threat blocked — trust me," and tells you
-nothing. Eyil Guard is the opposite — **radically transparent**, and honest about exactly what's
-real vs. scaffold. The cool parts:
+![Settings](assets/screenshots/04-settings.png)
 
-- 🏰 **Transparency-first UI** — a calm, plain-language verdict for *every* file, one toggle from
-  full forensic detail. The same screen makes sense to a curious beginner and a malware analyst.
-- 🧠 **Five detection layers** — ClamAV signatures · **~5,900 YARA rules** (community + 12 built-in
-  + *your own*) · abuse.ch hash blocklist · behavioral correlation (ransomware / temp-exec /
-  office-spawned-shell) · live network command-and-control checks.
-- 👁️ **Live process inventory** — sees what's actually *running*, not just files on disk; flags
-  threats with their real PID and can kill them on the spot.
-- ⚡ **Real-time + auto-updating** — a user-space file monitor plus threat intel that refreshes
-  itself on a schedule, with **honest update-health** that never fakes a "fresh" timestamp.
-- 🛡️ **A real kernel minifilter** — true *pre-execution blocking* (stop a file before it opens),
-  built and verified on a Windows VM. Most open-source AV projects never get here.
-- ✍️ **Write-your-own YARA** + **BYOK feeds** — extend detection yourself, no rebuild required.
-- 📦 **One calm desktop app** — a single process serves the engine *and* a native window
-  (frameless, custom-chromed). No browser, no separate server.
-- 🤝 **Composes, doesn't reinvent** — it stands on ClamAV, YARA, and abuse.ch rather than pretending
-  to out-detect the giants, and it says so.
+## How it works
 
-### Eyil Guard vs. a typical antivirus
+![Architecture](assets/architecture.svg)
 
-| | Typical AV | **Eyil Guard** |
-|---|---|---|
-| **The verdict** | "Threat blocked — trust me" | plain-language reason, one toggle from full forensics |
-| **What's running** | hidden | a live inventory — every process, each with a verdict |
-| **Detection rules** | closed | ~5,900 YARA + **write your own** |
-| **Update health** | silent | always visible; never fakes a "fresh" timestamp |
-| **Your data** | phones home | stays on `127.0.0.1`; keys never leave your machine |
-| **Source** | closed | **GPLv3**, built in the open |
+A file open is intercepted by the kernel minifilter, which asks the local engine for a
+verdict. The engine runs the file through the five detection sources, which are kept current
+by automatic updates, returns the result to the kernel (which can block the open), and shows
+it in the dashboard.
 
-## Why I built this
+## Requirements
 
-I've always wanted to build a real open-source product — something people could actually
-use, not a toy. And I've always been frustrated by antivirus software: it's a black box.
-A red shield flashes, says *"threat blocked — trust me,"* and tells you nothing. What was
-the file? What was it doing? Where did it live, what did it touch, who did it talk to?
-You're not allowed to know.
+- Windows and Python 3.11 or newer.
+- ClamAV with the clamd daemon. This is optional. Hash, behavioral, and network detection
+  work without it, and the dashboard reports ClamAV as not running.
+- Node.js, to build the dashboard.
 
-**Eyil Guard is the AV I always wanted** — one where I can see exactly what every file is
-doing, in plain language, one toggle away from the full forensic truth (paths, hashes, IPs,
-the event log). Nothing hidden, nothing dumbed-down-and-then-lost. The same file makes sense
-to a curious beginner and to a malware analyst.
+## Install
 
-It doesn't try to out-detect the commercial giants — it can't, and it's honest about that.
-Instead it composes the best free, auto-updating pieces (ClamAV, YARA, abuse.ch threat feeds)
-and adds the parts that were missing: a real-time Windows monitor, behavioral detection that
-catches ransomware by *what it does*, network command-and-control detection, a kernel
-minifilter for true on-access blocking, and above all a calm, transparent dashboard that
-respects your intelligence.
-
-It's GPLv3, it's a work in progress, and I'm building it in the open.
-
-## What we borrow vs. what we build
-
-| Need | Component | Ours? |
-|---|---|---|
-| Detection engine + signatures | **ClamAV** (via the `clamd` daemon) | borrowed |
-| Automatic signature updates | **freshclam** (+ optional Fangfrisch feeds) | borrowed |
-| Pattern matching | **YARA** + community rule repos | borrowed |
-| Malware hash / IOC feeds | **abuse.ch** (MalwareBazaar, ThreatFox, URLhaus) | borrowed |
-| System telemetry | **Sysmon** / **OSQuery** | borrowed |
-| Real-time on-access blocking (Windows) | **minifilter driver** (`avfilter.c`) | **ours** |
-| Engine orchestration + verdicts + API | this repo (`engine/`) | **ours** |
-| Behavioral correlation (ransomware etc.) | `engine/behavior.py` (+ Sigma rules) | **ours** |
-| Dual-mode dashboard | **Eyil** (`eyil_dashboard.jsx`) | **ours** |
-
-> NOTE on VirusTotal: the VT *free public API may not be used in antivirus products* —
-> its terms forbid it. So VT is never a runtime dependency here. Users can still check a
-> file manually at virustotal.com; we just don't integrate the free API.
-
-## Architecture
-
-![Eyil Guard architecture — kernel minifilter → engine → dashboard, with five detection layers](assets/architecture.svg)
-
-A file open is intercepted by the **kernel minifilter** (pre-execution block), handed to the local
-**engine** for a verdict from **five detection layers** (ClamAV · YARA · hash blocklist · behavioral
-· network C2) fed by **auto-updating** abuse.ch intel, and the result lands in the **dashboard** —
-Simple or Technical. Everything stays on `127.0.0.1`.
-
-## Folder layout
-
-```
-eyil/
-├── README.md
-├── requirements.txt
-├── engine/                  # the Python engine (runnable today)
-│   ├── service.py           #   local API + WebSocket the dashboard consumes
-│   ├── scanners.py          #   ClamAV (clamd) + YARA + hash-feed scanning
-│   ├── behavior.py          #   behavioral correlation (ransomware etc.)
-│   ├── feeds.py             #   abuse.ch feed fetch + update-health
-│   └── models.py            #   shared data shapes
-├── driver/                  # the Windows real-time layer (build on Windows + WDK)
-│   ├── avfilter.c           #   minifilter: scans files on open
-│   ├── avfilter.inf         #   driver install (anti-virus altitude)
-│   └── scanner_service.c    #   user-mode bridge between driver and engine
-├── dashboard/
-│   ├── eyil_dashboard.jsx  #   the chosen UI (Simple / Technical views)
-│   └── explorations/        #   earlier design directions, kept for reference
-├── tools/
-│   └── mini_av.py           #   standalone signature scanner (the prototype)
-├── config/
-│   └── freshclam.conf.sample
-└── data/                    # hash feeds + state (populated at runtime)
-```
-
-## Prerequisites
-
-1. **Python 3.11+**
-2. **ClamAV** with the daemon running:
-   - Windows: install ClamAV, run `freshclam` once, then start the `clamd` service.
-   - Linux/macOS: `apt install clamav clamav-daemon` (or `brew install clamav`),
-     run `freshclam`, start `clamav-daemon`.
-   - freshclam keeps signatures current automatically — leave it running.
-3. **YARA rules** (optional but recommended): clone a community ruleset, e.g.
-   `git clone https://github.com/Neo23x0/signature-base` into `data/yara/`.
-
-## Install & run
-
-Eyil is a **single-process desktop app**: the engine serves both the local API and the
-built dashboard, and a native window (`pywebview` + the Windows WebView2 runtime) opens
-onto it — no browser, no separate server.
-
-### Setup (recommended) — one command
+The setup script installs dependencies, builds the dashboard, sets up ClamAV, pulls the
+first feeds, and registers a background listener that starts at logon. It does not require
+administrator rights.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-`install.ps1` (user-level, **no admin needed**) installs dependencies, builds the UI,
-installs/uses ClamAV, pulls the first signatures + threat feeds, registers the always-on
-**background listener** (autostart at logon, hidden), and drops a **desktop shortcut**.
-Remove it all with `uninstall.ps1`.
-
-- `python -m eyil` — open the window (foreground).
-- `python -m eyil --no-window` — run as the headless background listener.
-The launcher **starts `clamd` itself** if it isn't already running.
-
-### Package a standalone `Eyil.exe`
+Run it:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File build_exe.ps1   # → dist\Eyil\Eyil.exe
+python -m eyil              # open the window
+python -m eyil --no-window  # run the background listener only
 ```
-A windowed bundle with the dashboard inside. ClamAV (clamd) is installed separately, not
-bundled. The frozen app ships the **full YARA ruleset** and keeps its writable runtime data
-(feeds, keys, quarantine) in **`%LOCALAPPDATA%\EyilGuard\data`**, seeded on first run.
 
-**Live vs. demo data (honest by default):** the dashboard talks to the engine on its own
-origin. If the engine is unreachable it falls back to clearly-labelled **demo data** (a
-yellow "Demo data" banner) rather than presenting mock files as real detections. Set
-`VITE_USE_API=false` at build time to force the offline demo.
+Remove everything with `uninstall.ps1`.
 
-### Dashboard development
+## Standalone executable
 
-```bash
-cd dashboard
-npm run dev        # Vite dev server on :5173, proxies API + WebSocket to the engine
+```powershell
+powershell -ExecutionPolicy Bypass -File build_exe.ps1
 ```
-Run the engine separately (`python -m eyil --no-window`) so the dev UI has live data.
 
-## API surface
+This produces `dist\Eyil\Eyil.exe`, a windowed build with the dashboard and the full YARA
+ruleset included. ClamAV is installed separately. Runtime data (feeds, keys, quarantine) is
+written to `%LOCALAPPDATA%\EyilGuard\data` on first run.
 
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/health` | Update-health: last signature & feed refresh, staleness flags |
-| GET | `/objects` | Currently monitored files/processes with verdicts |
-| POST | `/scan` | Scan a path on demand → findings + verdict |
-| POST | `/events` | Ingest a batch of events from the minifilter / Sysmon |
-| WS | `/stream` | Live event + verdict feed for the dashboard |
+## Project layout
 
-## Status (honest)
+```
+engine/     Python engine: API, scanners, behavioral rules, feeds, data models
+driver/     Windows minifilter and the user-mode scanner bridge (built in a VM)
+dashboard/  the dashboard (Vite and React)
+eyil/       the desktop launcher (python -m eyil)
+data/       feeds and runtime state
+tools/      the original scanner prototype and helper scripts
+```
 
-**Built and verified — runs today:**
-- **Detection** — ClamAV (`clamd`) + ~1,100 abuse.ch hashes + **~5,900 YARA rules**
-  (community `signature-base` + your own custom rules) + behavioral (ransomware / temp /
-  office-spawned-shell) + network command-and-control.
-- **Real-time** — a user-mode file monitor *and* a live process inventory (every running app,
-  threats flagged; quarantine kills the process); auto-updating threat intel.
-- **Dashboard** — wired to the live engine: Simple/Technical views, update-health,
-  allow / quarantine / un-allow, a whitelist panel, and **write-your-own YARA rules**.
-- **Packaging** — single-process native window (pywebview + WebView2), `install.ps1` setup,
-  autostart listener, and a standalone `Eyil.exe`.
+## What is borrowed and what is built here
 
-**Kernel layer — runs on a test VM:** the minifilter for true *pre-execution blocking*
-(`driver/`) now **builds, test-signs, loads and blocks** on a Windows VM. The **full pipeline**
-is verified — the driver intercepts a file open under its scope (`C:\EyilScanLab\`), hands the
-path to `scanner_service.exe`, which SHA-256s it and checks the 2,000+ blocklist, and the kernel
-stops the open *before it completes* with `STATUS_VIRUS_INFECTED`. It stays deliberately
-narrow-scoped and **test-signed (VM-only)**; see
-[`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md). Production use needs a real code-signing
-cert and a wider scope.
-
-**Not yet (for a *shipped* product):** code-signing (so users don't hit SmartScreen warnings)
-and an always-on SYSTEM service. Until those land, treat Eyil as a transparent, hackable
-**open-source project** — not a drop-in replacement for your primary antivirus.
-
-## Development
-
-Where the project stands today — a **work in progress, built in the open**, and honest
-about what's real vs. scaffold.
-
-### ✅ Done (works today)
-- [x] **Detection engine** — ClamAV (`clamd`, INSTREAM) wired and detecting (EICAR-verified)
-- [x] **~5,940 YARA rules** — 12 built-in (`engine/yara_builtin/`) + ~5,900 community
-      `signature-base` + **your own custom rules**, via the `yara-x` engine
-- [x] **Hash + C2 intel** — abuse.ch MalwareBazaar hashes + Feodo Tracker C2 IPs
-- [x] **Behavioral detection** — ransomware / temp-exec / office-spawned-shell / network C2
-- [x] **Real-time monitor** — `watchdog` file watcher + a **live process inventory** (every
-      running app, threats flagged, quarantine kills the process)
-- [x] **Auto-updating intel** — scheduled + on-demand (`POST /update`), hot-reloaded live
-- [x] **Update-health** — never advances a timestamp on a failed fetch; always visible
-- [x] **Local API + WebSocket** — `engine/service.py`, bound to `127.0.0.1` only
-- [x] **Dashboard wired to the live engine** — Simple/Technical views, allow / quarantine /
-      un-allow, a whitelist panel, **write-your-own YARA rules**, demo fallback when offline
-- [x] **BYOK key store** — masked keys for the richer abuse.ch / Malpedia feeds
-- [x] **Single-process desktop app** — pywebview + WebView2 native window (`python -m eyil`)
-- [x] **Installer + standalone `Eyil.exe`** — `install.ps1` / `uninstall.ps1` + PyInstaller
-
-### 📦 What's in the box right now
-| Asset | Count |
+| Component | Source |
 |---|---|
-| YARA rules loaded | **~5,928** |
-| Malware hashes | **~1,964** |
-| C2 IPs | **~115** |
-| Engine endpoints | `/health` · `/objects` · `/scan` · `/events` · `/action` · `/update` · `/rescan` · `/keys` · `/allowlist` · `/yara/*` · `/stream` |
+| Signature engine and database | ClamAV and freshclam (borrowed) |
+| Pattern matching | YARA and community rules (borrowed) |
+| Hash and indicator feeds | abuse.ch: MalwareBazaar, ThreatFox, URLhaus (borrowed) |
+| Kernel minifilter | this repository |
+| Engine, verdicts, and API | this repository |
+| Behavioral correlation | this repository |
+| Dashboard | this repository |
 
-### ✅ Kernel pre-execution blocking — verified on a VM
-- [x] **Kernel minifilter** (`driver/`) **builds, test-signs, loads and blocks** on a Windows VM.
-      Both paths are verified: the in-kernel block *and* the **full driver → `scanner_service.exe`
-      → SHA-256 → blocklist round-trip** — a file under `\EyilScanLab\` is hashed, matched against
-      the 2,000+ blocklist, and stopped pre-open with `STATUS_VIRUS_INFECTED`
-      (runbook: [`driver/BUILD_DRIVER.md`](driver/BUILD_DRIVER.md)). Test-signed + VM-only by
-      design — production needs a real code-signing cert + a wider scope.
+VirusTotal's public API may not be used inside antivirus products, so it is never a runtime
+dependency. The dashboard links to virustotal.com for manual lookups instead.
 
-### ⬜ Left to build
-**Near-term (doable in the dev env)**
-- [ ] System-tray icon for the background listener (Open / Pause / Quit)
-- [ ] MalwareBazaar full-feed toggle / longer feed windows
+## Status
 
-**Needs input or a data source**
-- [ ] Malpedia curated-YARA fetch (needs a free Malpedia key)
-- [ ] Domain / URL blocking (needs a DNS / URL event source)
+Working today:
 
-**Needs privilege or paid assets**
-- [ ] Always-on **SYSTEM service** (runs before login, for all users)
-- [ ] **Code-sign `Eyil.exe`** (no SmartScreen warning) — needs a code-signing cert
+- Detection: ClamAV, the abuse.ch hash blocklist, about 5,900 YARA rules, behavioral rules,
+  and network command-and-control checks.
+- Real-time: a user-mode file monitor and the live process inventory.
+- Dashboard: connected to the engine, both views, allow, quarantine, and un-allow actions,
+  an allow list, and a YARA rule editor.
+- Packaging: a native window, an installer, a background listener, and a standalone executable.
 
-**Future**
-- [ ] Sigma rules → `behavior.py`; richer behavioral correlation
-- [ ] Installer polish (MSIX / Inno); remote management (needs API auth first)
-- [ ] Add the GPLv3 `LICENSE` file
+Kernel driver: it builds, test-signs, loads, and blocks on a Windows VM. A file under its
+scan scope is intercepted, hashed, matched against the blocklist, and the open is blocked
+with STATUS_VIRUS_INFECTED. It is test-signed and VM-only. See `driver/BUILD_DRIVER.md`.
 
-## Threat-intel feeds & attribution
+Not done yet: code-signing the executable and the driver, and an always-on system service.
+Until those exist, run Eyil Guard alongside your existing antivirus rather than as a
+replacement.
 
-Eyil composes free, keyless **bulk exports** from [abuse.ch](https://abuse.ch) (now part
-of Spamhaus): **MalwareBazaar** SHA-256 hashes (`data/hashes.txt`) and **Feodo Tracker**
-botnet C2 IPs (`data/c2_ips.txt`). These are free under abuse.ch's *fair-use* terms for
-open-source/non-commercial use (attribution expected; commercial use may need a paid
-subscription). The richer **query APIs** (ThreatFox, URLhaus, MalwareBazaar `/api/`) now
-require a free Auth-Key from [auth.abuse.ch](https://auth.abuse.ch) — set `ABUSE_CH_KEY`
-in `engine/feeds.py` to enable them. Note: community YARA rulesets such as
-`Neo23x0/signature-base` are licensed under the **Detection Rule License (DRL) 1.1**, not
-GPL — bundle them as data with attribution.
+## Threat intelligence and attribution
+
+Eyil Guard uses the free bulk exports from [abuse.ch](https://abuse.ch) (now part of
+Spamhaus): MalwareBazaar hashes and Feodo Tracker command-and-control IPs, under abuse.ch's
+fair-use terms for non-commercial use. The query APIs (ThreatFox, URLhaus) require a free
+key from [auth.abuse.ch](https://auth.abuse.ch). Community YARA rule sets such as
+[Neo23x0/signature-base](https://github.com/Neo23x0/signature-base) are licensed under the
+Detection Rule License 1.1 and are included as data with attribution.
 
 ## License
 
-GPLv3 — required because we link the ClamAV ecosystem, and right for an
-"open-source everything" project.
+GPLv3. See [LICENSE](LICENSE).

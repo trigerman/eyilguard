@@ -34,11 +34,11 @@
 
     <rect x="423" y="228" width="155" height="80" rx="14" fill="#7B6CF6"/>
     <text x="500" y="262" font-size="15" font-weight="800" fill="#FFFFFF">Engine</text>
-    <text x="500" y="285" font-size="12" fill="#E9E5FF">verdicts · local-only</text>
+    <text x="500" y="285" font-size="12" fill="#E9E5FF">verdicts, local only</text>
 
     <rect x="800" y="228" width="160" height="80" rx="14" fill="#7B6CF6"/>
     <text x="880" y="262" font-size="15" font-weight="800" fill="#FFFFFF">Eyil dashboard</text>
-    <text x="880" y="285" font-size="12" fill="#E9E5FF">Simple / Technical</text>
+    <text x="880" y="285" font-size="12" fill="#E9E5FF">Simple and Technical</text>
   </g>
   <g stroke="#9A93C9" stroke-width="2" fill="none">
     <path d="M190 268 H246" marker-end="url(#arr)"/>
@@ -57,6 +57,6 @@
     <rect x="300" y="470" width="16" height="16" rx="4" fill="#7B6CF6"/>
     <text x="324" y="483">built here (ours)</text>
     <rect x="470" y="470" width="16" height="16" rx="4" fill="#FFFFFF" stroke="#D9D4F2"/>
-    <text x="494" y="483">composed (ClamAV · YARA · abuse.ch)</text>
+    <text x="494" y="483">composed (ClamAV, YARA, abuse.ch)</text>
   </g>
 </svg>
