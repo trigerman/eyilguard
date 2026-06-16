@@ -15,6 +15,59 @@ the UX.
 > project, not a finished product. See the honest [status section](#status-honest) for exactly
 > what's real vs. in progress.
 
+## A look inside
+
+> Screenshots use **demo data** (no real malware) so you can see the threat states. The real app
+> looks identical against your live system.
+
+### Calm by default — loud only when something needs you
+The fortress mascot goes from calm to **alert**, and the hero tells you what happened in one plain
+sentence. Threats get cards; everything else that's running collapses into a single quiet line —
+so a wall of safe processes never buries the one thing that matters.
+
+![Eyil Guard dashboard — alert state with two flagged files](assets/screenshots/01-dashboard.png)
+
+### Every file, two ways: a calm explanation *or* the full forensic truth
+One toggle. **Simple** answers the human questions — where it lives, whether it goes online, what
+it touches, who it talks to. **Technical** is the whole truth — full path, PID, parent process,
+signer, size, **SHA-256**, live CPU/memory, and a one-click *manual* VirusTotal lookup.
+
+| Simple view | Technical view |
+|---|---|
+| ![Simple view](assets/screenshots/02-simple-detail.png) | ![Technical view](assets/screenshots/03-technical.png) |
+
+### It's *your* antivirus — tune it
+![Settings — keys, whitelist, custom YARA, uninstall](assets/screenshots/04-settings.png)
+
+- **Bring-your-own-key** feeds (abuse.ch, Malpedia) — stored only on your machine, never uploaded.
+- A **whitelist** that hides what you trust (and re-alerts if it ever misbehaves).
+- **Write your own YARA rules** — validate, test against a file, and save; they compile straight
+  into the live engine. This is your AV — teach it what to look for.
+- **One-click uninstall**, and an honest note on why VirusTotal's API isn't baked in.
+
+## What makes it different
+
+Most antivirus is a black box: a red shield flashes "threat blocked — trust me," and tells you
+nothing. Eyil Guard is the opposite — **radically transparent**, and honest about exactly what's
+real vs. scaffold. The cool parts:
+
+- 🏰 **Transparency-first UI** — a calm, plain-language verdict for *every* file, one toggle from
+  full forensic detail. The same screen makes sense to a curious beginner and a malware analyst.
+- 🧠 **Five detection layers** — ClamAV signatures · **~5,900 YARA rules** (community + 12 built-in
+  + *your own*) · abuse.ch hash blocklist · behavioral correlation (ransomware / temp-exec /
+  office-spawned-shell) · live network command-and-control checks.
+- 👁️ **Live process inventory** — sees what's actually *running*, not just files on disk; flags
+  threats with their real PID and can kill them on the spot.
+- ⚡ **Real-time + auto-updating** — a user-space file monitor plus threat intel that refreshes
+  itself on a schedule, with **honest update-health** that never fakes a "fresh" timestamp.
+- 🛡️ **A real kernel minifilter** — true *pre-execution blocking* (stop a file before it opens),
+  built and verified on a Windows VM. Most open-source AV projects never get here.
+- ✍️ **Write-your-own YARA** + **BYOK feeds** — extend detection yourself, no rebuild required.
+- 📦 **One calm desktop app** — a single process serves the engine *and* a native window
+  (frameless, custom-chromed). No browser, no separate server.
+- 🤝 **Composes, doesn't reinvent** — it stands on ClamAV, YARA, and abuse.ch rather than pretending
+  to out-detect the giants, and it says so.
+
 ## Why I built this
 
 I've always wanted to build a real open-source product — something people could actually
