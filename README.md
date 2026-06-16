@@ -1,5 +1,10 @@
 # Eyil Guard
 
+![License: GPLv3](https://img.shields.io/badge/license-GPLv3-7B6CF6.svg)
+&nbsp;![Platform: Windows](https://img.shields.io/badge/platform-Windows-2E2A4F.svg)
+&nbsp;![Detection: ClamAV + ~5,900 YARA](https://img.shields.io/badge/detection-ClamAV%20%2B%20~5%2C900%20YARA-5FBF9B.svg)
+&nbsp;![Status: work in progress](https://img.shields.io/badge/status-work%20in%20progress-F2C14E.svg)
+
 An **open-source (GPLv3) endpoint protection tool for Windows** that's honest about
 what it does. Its difference isn't out-detecting commercial antivirus — it's
 *transparency*: every file gets a calm, plain-language verdict that's one click away
@@ -76,6 +81,17 @@ real vs. scaffold. The cool parts:
   (frameless, custom-chromed). No browser, no separate server.
 - 🤝 **Composes, doesn't reinvent** — it stands on ClamAV, YARA, and abuse.ch rather than pretending
   to out-detect the giants, and it says so.
+
+### Eyil Guard vs. a typical antivirus
+
+| | Typical AV | **Eyil Guard** |
+|---|---|---|
+| **The verdict** | "Threat blocked — trust me" | plain-language reason, one toggle from full forensics |
+| **What's running** | hidden | a live inventory — every process, each with a verdict |
+| **Detection rules** | closed | ~5,900 YARA + **write your own** |
+| **Update health** | silent | always visible; never fakes a "fresh" timestamp |
+| **Your data** | phones home | stays on `127.0.0.1`; keys never leave your machine |
+| **Source** | closed | **GPLv3**, built in the open |
 
 ## Why I built this
 
