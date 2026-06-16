@@ -90,6 +90,7 @@ static void LoadBlocklist(void)
     FILE *f = NULL;
     if (fopen_s(&f, path, "r") != 0 || !f) {
         wprintf(L"[blocklist] could not open %hs - hash detection limited to EICAR\n", path);
+        fflush(stdout);
         return;
     }
 
@@ -115,6 +116,7 @@ static void LoadBlocklist(void)
     if (g_hashes && g_count)
         qsort(g_hashes, g_count, HASH_HEX_LEN + 1, hash_cmp);
     wprintf(L"[blocklist] loaded %zu known-bad hashes from %hs\n", g_count, path);
+    fflush(stdout);
 }
 
 static BOOL InBlocklist(const char *hex)
@@ -193,6 +195,7 @@ static DWORD RunScannerLoop(void)
         return 1;
     }
     wprintf(L"Connected. Waiting for scan requests...\n");
+    fflush(stdout);
 
     for (;;) {
         AV_MESSAGE msg = {0};
@@ -200,6 +203,7 @@ static DWORD RunScannerLoop(void)
         hr = FilterGetMessage(g_port, &msg.Header, sizeof(msg), NULL);
         if (FAILED(hr)) {
             wprintf(L"FilterGetMessage failed: 0x%08x\n", hr);
+            fflush(stdout);
             break;
         }
 
@@ -211,6 +215,7 @@ static DWORD RunScannerLoop(void)
         BOOL infected = ScanIsInfected(msg.Request.Path);
         wprintf(L"%s  ->  %s\n", msg.Request.Path,
                 infected ? L"INFECTED (blocking)" : L"clean");
+        fflush(stdout);
 
         /* Reply to the kernel with our verdict. */
         AV_REPLY rep = {0};
@@ -218,9 +223,11 @@ static DWORD RunScannerLoop(void)
         rep.Header.MessageId = msg.Header.MessageId;
         rep.Reply.Infected = (BOOLEAN)(infected ? TRUE : FALSE);
 
-        hr = FilterReplyMessage(g_port, &rep.Header, sizeof(rep));
+        hr = FilterReplyMessage(g_port, &rep.Header,
+                                sizeof(FILTER_REPLY_HEADER) + sizeof(AV_SCAN_REPLY));
         if (FAILED(hr)) {
             wprintf(L"FilterReplyMessage failed: 0x%08x\n", hr);
+            fflush(stdout);
         }
     }
 
@@ -289,6 +296,7 @@ int wmain(int argc, wchar_t **argv)
         };
         if (!StartServiceCtrlDispatcherW(table)) {
             wprintf(L"StartServiceCtrlDispatcher failed: %lu\n", GetLastError());
+            fflush(stdout);
             return 1;
         }
         return 0;

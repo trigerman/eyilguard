@@ -29,10 +29,10 @@ if (-not (Test-Path -LiteralPath $Path)) {
   return
 }
 
-Write-Host "Reading it back — the driver must now ask the scanner, which hashes + blocks:" -ForegroundColor Yellow
+Write-Host "Reading it back - the driver must now ask the scanner, which hashes + blocks:" -ForegroundColor Yellow
 try {
   $null = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop
-  Write-Warning ("Read SUCCEEDED — the hash round-trip did NOT block it. Check: is EyilGuardScan running? " +
+  Write-Warning ("Read SUCCEEDED - the hash round-trip did NOT block it. Check: is EyilGuardScan running? " +
                  "Is the path under C:\EyilScanLab\? Did the scanner load the blocklist (it prints the count on start)?")
 } catch {
   Write-Host "BLOCKED on read: $($_.Exception.Message)" -ForegroundColor Green
